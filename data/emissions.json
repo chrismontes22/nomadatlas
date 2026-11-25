@@ -1,0 +1,40 @@
+{
+  "year": 2026,
+  "unit": "kg CO2e per passenger-km",
+  "distanceUplift": 0.08,
+  "shortHaulMaxKm": 3700,
+  "domestic": {
+    "avg": {
+      "rf": 0.22928,
+      "noRf": 0.13552
+    }
+  },
+  "shortHaul": {
+    "economy": {
+      "rf": 0.12576,
+      "noRf": 0.07435
+    },
+    "business": {
+      "rf": 0.18863,
+      "noRf": 0.11152
+    }
+  },
+  "longHaul": {
+    "economy": {
+      "rf": 0.11704,
+      "noRf": 0.06926
+    },
+    "premium": {
+      "rf": 0.18726,
+      "noRf": 0.11081
+    },
+    "business": {
+      "rf": 0.3394,
+      "noRf": 0.20083
+    },
+    "first": {
+      "rf": 0.46814,
+      "noRf": 0.27701
+    }
+  }
+}

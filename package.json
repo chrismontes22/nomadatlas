@@ -1,0 +1,25 @@
+{
+  "name": "nomadatlas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NomadAtlas — open-data calculators that help digital nomads decide where to live and work.",
+  "type": "module",
+  "scripts": {
+    "data:fetch": "node scripts/data/fetch.mjs",
+    "data:build": "node scripts/data/process.mjs",
+    "data": "npm run data:fetch && npm run data:build",
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs && node scripts/serve.mjs",
+    "serve": "node scripts/serve.mjs",
+    "check": "node scripts/check.mjs",
+    "preview:artifact": "node scripts/build-preview.mjs",
+    "og": "node scripts/og.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "esbuild": "^0.25.10"
+  }
+}
