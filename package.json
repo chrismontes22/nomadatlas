@@ -1,0 +1,17 @@
+{
+  "name": "meridian-nomad-atlas",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Open-data digital nomad city, cost of living, weather, and remote-work calculator powered by 7 commercial-free, zero-copyleft datasets.",
+  "scripts": {
+    "build:map": "node scripts/build-world-map.mjs",
+    "refresh:data": "node scripts/fetch-open-data.mjs",
+    "refresh:climate": "node scripts/fetch-open-data.mjs --refresh-climate",
+    "build:seo": "node scripts/build-seo.mjs",
+    "build": "node scripts/fetch-open-data.mjs && node scripts/build-seo.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,0 +1,50 @@
+name: Monthly Open-Data & SEO Rebuild
+
+on:
+  schedule:
+    # Runs at 04:00 UTC on the 1st of every month (free on GitHub Actions)
+    - cron: '0 4 1 * *'
+  workflow_dispatch:
+    inputs:
+      refresh_climate:
+        description: 'Re-download NASA POWER 30-year weather normals'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-and-rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fetch latest World Bank WDI/WGI & GeoNames data
+        run: |
+          if [ "${{ inputs.refresh_climate }}" = "true" ]; then
+            npm run refresh:climate
+          else
+            npm run refresh:data
+          fi
+
+      - name: Rebuild static SEO pages, sitemap.xml & datasets.json
+        run: npm run build:seo
+
+      - name: Commit updated data & SEO pages (if changed)
+        run: |
+          git config user.name "Meridian Open-Data Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/cities.js data/cache/nasa-power-cache.json index.html cities/ sitemap.xml datasets.json
+          if git diff --staged --quiet; then
+            echo "No data changes this month."
+          else
+            git commit -m "chore(data): monthly open-data refresh & SEO rebuild ($(date -u +%Y-%m-%d))"
+            git push
+          fi

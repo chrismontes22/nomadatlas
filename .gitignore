@@ -1,0 +1,7 @@
+# Large raw GeoNames dumps (re-downloaded automatically by scripts/fetch-open-data.mjs)
+data/cache/cities15000.txt
+data/cache/cities15000.zip
+data/cache/countryInfo.txt
+
+node_modules/
+.DS_Store

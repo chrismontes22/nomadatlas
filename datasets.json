@@ -1,0 +1,148 @@
+{
+  "name": "Meridian Nomad Atlas Open Datasets Manifest",
+  "refreshedAt": "2026-11-25",
+  "cityCount": 159,
+  "countryCount": 78,
+  "commercialUseVerified": true,
+  "copyleftFree": true,
+  "datasets": [
+    {
+      "id": "natural-earth",
+      "name": "Natural Earth 110m Admin-0 Countries",
+      "publisher": "Natural Earth (NACIS)",
+      "license": "Public Domain",
+      "licenseCode": "Public-Domain",
+      "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "sourceUrl": "https://www.naturalearthdata.com/downloads/110m-cultural-vectors/",
+      "refreshCadence": "Fetch once (border changes are rare)",
+      "commercialUse": true,
+      "copyleft": false,
+      "attributionRequired": false,
+      "indicators": [
+        "176 real sovereign country polygons & coastlines",
+        "Projected using Tom Patterson’s Natural Earth projection"
+      ],
+      "role": "Powers the accurate interactive SVG world map with real country borders, click-to-filter countries, and zero map-tile API costs.",
+      "citation": "Made with Natural Earth (Public Domain)."
+    },
+    {
+      "id": "wb-wdi-icp",
+      "name": "World Bank World Development Indicators (WDI) & ICP PPP",
+      "publisher": "The World Bank Group",
+      "license": "CC BY 4.0 International",
+      "licenseCode": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://data.worldbank.org/indicator/PA.NUS.PRVT.PP",
+      "refreshCadence": "Yearly (automated free API)",
+      "commercialUse": true,
+      "copyleft": false,
+      "attributionRequired": true,
+      "indicators": [
+        "PA.NUS.PRVT.PP & PA.NUS.FCRF — Household consumption PPP price level ratio",
+        "FP.CPI.TOTL.ZG — Consumer price inflation (annual %)",
+        "EN.ATM.PM25.MC.M3 — PM2.5 air pollution (µg/m³)",
+        "SP.DYN.LE00.IN — Life expectancy at birth (years)",
+        "IT.NET.BBND.P2 & IT.NET.USER.ZS — Broadband subscriptions & internet adoption"
+      ],
+      "role": "Powers monthly cost-of-living estimates, 5-year savings projections, inflation stress-testing, air quality, and health context.",
+      "citation": "The World Bank: World Development Indicators & ICP (CC BY 4.0)."
+    },
+    {
+      "id": "wb-wgi",
+      "name": "World Bank Worldwide Governance Indicators (WGI)",
+      "publisher": "The World Bank Group",
+      "license": "CC BY 4.0 International",
+      "licenseCode": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://www.worldbank.org/en/publication/worldwide-governance-indicators",
+      "refreshCadence": "Yearly (automated free API)",
+      "commercialUse": true,
+      "copyleft": false,
+      "attributionRequired": true,
+      "indicators": [
+        "GOV_WGI_PV.SC — Political Stability & Absence of Violence (0–100)",
+        "GOV_WGI_RL.SC — Rule of Law (0–100)"
+      ],
+      "role": "Provides objective, reproducible safety and institutional stability scores without proprietary crowdsourced crime indexes.",
+      "citation": "The World Bank: Worldwide Governance Indicators (CC BY 4.0)."
+    },
+    {
+      "id": "nasa-power",
+      "name": "NASA POWER Global Climatology",
+      "publisher": "NASA Langley Research Center",
+      "license": "U.S. Government Public Domain",
+      "licenseCode": "Public-Domain",
+      "licenseUrl": "https://power.larc.nasa.gov/docs/methodology/",
+      "sourceUrl": "https://power.larc.nasa.gov/",
+      "refreshCadence": "Mostly static (30-year climate normals)",
+      "commercialUse": true,
+      "copyleft": false,
+      "attributionRequired": false,
+      "indicators": [
+        "T2M — 30-year monthly mean temperature at 2 meters (°C)",
+        "PRECTOTCORR — Monthly mean rainfall (mm/month)",
+        "ALLSKY_SFC_SW_DWN — Surface solar irradiance (daily sunshine proxy)"
+      ],
+      "role": "Powers real 12-month weather curves, comfort scoring, and year-round multi-city itinerary weather planning for every coordinate.",
+      "citation": "NASA Prediction of Worldwide Energy Resources (POWER) Project (Public Domain)."
+    },
+    {
+      "id": "geonames",
+      "name": "GeoNames Geographical Gazetteer (cities15000)",
+      "publisher": "GeoNames",
+      "license": "CC BY 4.0 International",
+      "licenseCode": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://www.geonames.org/export/",
+      "refreshCadence": "Yearly (free bulk download)",
+      "commercialUse": true,
+      "copyleft": false,
+      "attributionRequired": true,
+      "indicators": [
+        "Verified city WGS84 latitude & longitude",
+        "Elevation (meters), population, ISO-3166 country codes, canonical city slugs"
+      ],
+      "role": "Supplies exact map coordinates, city-size cost adjustments, and deterministic programmatic SEO city URLs.",
+      "citation": "GeoNames Geographical Database (CC BY 4.0)."
+    },
+    {
+      "id": "mlab-ndt",
+      "name": "Measurement Lab (M-Lab) Network Diagnostic Tool (NDT)",
+      "publisher": "Measurement Lab (Code for Science & Society)",
+      "license": "CC0 1.0 Universal (Public Domain)",
+      "licenseCode": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.measurementlab.net/data/",
+      "refreshCadence": "Quarterly (free BigQuery SQL included)",
+      "commercialUse": true,
+      "copyleft": false,
+      "attributionRequired": false,
+      "indicators": [
+        "Median download throughput (Mbps)",
+        "Median upload throughput (Mbps)",
+        "Median minimum round-trip latency (ms)"
+      ],
+      "role": "Drives remote-work internet speed ratings and video-call smoothness verdicts across cities.",
+      "citation": "Measurement Lab (M-Lab) NDT Open Data (CC0 1.0 Public Domain)."
+    },
+    {
+      "id": "iana-tzdb",
+      "name": "IANA Time Zone Database (tzdb)",
+      "publisher": "Internet Assigned Numbers Authority (IANA)",
+      "license": "Public Domain",
+      "licenseCode": "Public-Domain",
+      "licenseUrl": "https://www.iana.org/time-zones",
+      "sourceUrl": "https://www.iana.org/time-zones",
+      "refreshCadence": "Automatic via Node/Browser tzdb",
+      "commercialUse": true,
+      "copyleft": false,
+      "attributionRequired": false,
+      "indicators": [
+        "Canonical IANA time zone IDs (e.g., Europe/Lisbon, Asia/Tokyo)",
+        "Standard and Daylight Saving Time UTC offsets"
+      ],
+      "role": "Powers the 24-hour Team Time-Zone Overlap Checker and live call window grades.",
+      "citation": "IANA Time Zone Database (Public Domain)."
+    }
+  ]
+}

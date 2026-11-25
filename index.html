@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meridian Nomad Atlas — 159-City Digital Nomad Cost of Living, Weather &amp; Map Calculator</title>
+  <meta name="description" content="Compare 159 digital nomad cities across 78 countries on an interactive Natural Earth map. Estimate monthly cost of living, 5-year savings, internet speed, NASA weather, safety, and team call overlap using 7 free commercial open datasets." />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <link rel="canonical" href="https://meridian-nomad-atlas.example/" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0f5c52" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Meridian Nomad Atlas" />
+  <meta property="og:title" content="Meridian Nomad Atlas — 159-City Digital Nomad Calculator" />
+  <meta property="og:description" content="Explore 159 global cities across 78 countries with real Natural Earth borders, World Bank prices, NASA weather, and M-Lab internet speeds." />
+  <meta property="og:url" content="https://meridian-nomad-atlas.example/" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Meridian Nomad Atlas — Digital Nomad City Calculator" />
+  <meta name="twitter:description" content="Plain-English remote-work calculator across 159 global cities powered by 7 free commercial open datasets." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Meridian Nomad Atlas — 159-City Digital Nomad Cost, Weather & Map Calculator",
+  "url": "https://meridian-nomad-atlas.example/",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires HTML5 and JavaScript",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "description": "Free digital nomad calculator comparing 159 global cities across 78 countries by cost of living, 5-year savings, internet speed, NASA weather, safety, and work-hour overlap — built exclusively on 7 commercial-free, non-copyleft open datasets.",
+  "featureList": [
+    "Interactive Natural Earth country map & city finder across 159 cities in 78 countries",
+    "Monthly cost of living & 5-year savings / cash runway calculator",
+    "24-hour remote team work-hour & time zone overlap checker",
+    "12-month trip itinerary builder with 183-day tax & Europe 90-day Schengen stay tracker",
+    "Automated monthly open-data pipeline using 7 commercial-free datasets (CC BY 4.0, CC0, Public Domain)"
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "DataCatalog",
+  "name": "Meridian Nomad Atlas Open Data Catalog",
+  "description": "Verified commercial-free, non-copyleft datasets (Natural Earth, World Bank WDI/WGI, NASA POWER, GeoNames, M-Lab NDT, IANA tzdb).",
+  "dataset": [
+    {
+      "@type": "Dataset",
+      "name": "Natural Earth 110m Admin-0 Countries",
+      "description": "Powers the accurate interactive SVG world map with real country borders, click-to-filter countries, and zero map-tile API costs.",
+      "url": "https://www.naturalearthdata.com/downloads/110m-cultural-vectors/",
+      "license": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "creator": {
+        "@type": "Organization",
+        "name": "Natural Earth (NACIS)"
+      },
+      "variableMeasured": [
+        "176 real sovereign country polygons & coastlines",
+        "Projected using Tom Patterson’s Natural Earth projection"
+      ]
+    },
+    {
+      "@type": "Dataset",
+      "name": "World Bank World Development Indicators (WDI) & ICP PPP",
+      "description": "Powers monthly cost-of-living estimates, 5-year savings projections, inflation stress-testing, air quality, and health context.",
+      "url": "https://data.worldbank.org/indicator/PA.NUS.PRVT.PP",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "creator": {
+        "@type": "Organization",
+        "name": "The World Bank Group"
+      },
+      "variableMeasured": [
+        "PA.NUS.PRVT.PP & PA.NUS.FCRF — Household consumption PPP price level ratio",
+        "FP.CPI.TOTL.ZG — Consumer price inflation (annual %)",
+        "EN.ATM.PM25.MC.M3 — PM2.5 air pollution (µg/m³)",
+        "SP.DYN.LE00.IN — Life expectancy at birth (years)",
+        "IT.NET.BBND.P2 & IT.NET.USER.ZS — Broadband subscriptions & internet adoption"
+      ]
+    },
+    {
+      "@type": "Dataset",
+      "name": "World Bank Worldwide Governance Indicators (WGI)",
+      "description": "Provides objective, reproducible safety and institutional stability scores without proprietary crowdsourced crime indexes.",
+      "url": "https://www.worldbank.org/en/publication/worldwide-governance-indicators",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "creator": {
+        "@type": "Organization",
+        "name": "The World Bank Group"
+      },
+      "variableMeasured": [
+        "GOV_WGI_PV.SC — Political Stability & Absence of Violence (0–100)",
+        "GOV_WGI_RL.SC — Rule of Law (0–100)"
+      ]
+    },
+    {
+      "@type": "Dataset",
+      "name": "NASA POWER Global Climatology",
+      "description": "Powers real 12-month weather curves, comfort scoring, and year-round multi-city itinerary weather planning for every coordinate.",
+      "url": "https://power.larc.nasa.gov/",
+      "license": "https://power.larc.nasa.gov/docs/methodology/",
+      "creator": {
+        "@type": "Organization",
+        "name": "NASA Langley Research Center"
+      },
+      "variableMeasured": [
+        "T2M — 30-year monthly mean temperature at 2 meters (°C)",
+        "PRECTOTCORR — Monthly mean rainfall (mm/month)",
+        "ALLSKY_SFC_SW_DWN — Surface solar irradiance (daily sunshine proxy)"
+      ]
+    },
+    {
+      "@type": "Dataset",
+      "name": "GeoNames Geographical Gazetteer (cities15000)",
+      "description": "Supplies exact map coordinates, city-size cost adjustments, and deterministic programmatic SEO city URLs.",
+      "url": "https://www.geonames.org/export/",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "creator": {
+        "@type": "Organization",
+        "name": "GeoNames"
+      },
+      "variableMeasured": [
+        "Verified city WGS84 latitude & longitude",
+        "Elevation (meters), population, ISO-3166 country codes, canonical city slugs"
+      ]
+    },
+    {
+      "@type": "Dataset",
+      "name": "Measurement Lab (M-Lab) Network Diagnostic Tool (NDT)",
+      "description": "Drives remote-work internet speed ratings and video-call smoothness verdicts across cities.",
+      "url": "https://www.measurementlab.net/data/",
+      "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "creator": {
+        "@type": "Organization",
+        "name": "Measurement Lab (Code for Science & Society)"
+      },
+      "variableMeasured": [
+        "Median download throughput (Mbps)",
+        "Median upload throughput (Mbps)",
+        "Median minimum round-trip latency (ms)"
+      ]
+    },
+    {
+      "@type": "Dataset",
+      "name": "IANA Time Zone Database (tzdb)",
+      "description": "Powers the 24-hour Team Time-Zone Overlap Checker and live call window grades.",
+      "url": "https://www.iana.org/time-zones",
+      "license": "https://www.iana.org/time-zones",
+      "creator": {
+        "@type": "Organization",
+        "name": "Internet Assigned Numbers Authority (IANA)"
+      },
+      "variableMeasured": [
+        "Canonical IANA time zone IDs (e.g., Europe/Lisbon, Asia/Tokyo)",
+        "Standard and Daylight Saving Time UTC offsets"
+      ]
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Top 159 Global Digital Nomad Cities Ranked by Open Data",
+  "numberOfItems": 159,
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Valparaíso, Chile",
+      "url": "https://meridian-nomad-atlas.example/cities/valparaiso-chile.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Santiago, Chile",
+      "url": "https://meridian-nomad-atlas.example/cities/santiago-chile.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Las Palmas, Spain",
+      "url": "https://meridian-nomad-atlas.example/cities/las-palmas-spain.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "Rio de Janeiro, Brazil",
+      "url": "https://meridian-nomad-atlas.example/cities/rio-de-janeiro-brazil.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 5,
+      "name": "São Paulo, Brazil",
+      "url": "https://meridian-nomad-atlas.example/cities/sao-paulo-brazil.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 6,
+      "name": "Curitiba, Brazil",
+      "url": "https://meridian-nomad-atlas.example/cities/curitiba-brazil.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 7,
+      "name": "Funchal (Madeira), Portugal",
+      "url": "https://meridian-nomad-atlas.example/cities/funchal-portugal.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 8,
+      "name": "Santa Marta, Colombia",
+      "url": "https://meridian-nomad-atlas.example/cities/santa-marta-colombia.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 9,
+      "name": "Florianópolis, Brazil",
+      "url": "https://meridian-nomad-atlas.example/cities/florianopolis-brazil.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 10,
+      "name": "Kaohsiung, Taiwan",
+      "url": "https://meridian-nomad-atlas.example/cities/kaohsiung-taiwan.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 11,
+      "name": "Taichung, Taiwan",
+      "url": "https://meridian-nomad-atlas.example/cities/taichung-taiwan.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 12,
+      "name": "Chiang Mai, Thailand",
+      "url": "https://meridian-nomad-atlas.example/cities/chiang-mai-thailand.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 13,
+      "name": "Faro, Portugal",
+      "url": "https://meridian-nomad-atlas.example/cities/faro-portugal.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 14,
+      "name": "Bogotá, Colombia",
+      "url": "https://meridian-nomad-atlas.example/cities/bogota-colombia.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 15,
+      "name": "Málaga, Spain",
+      "url": "https://meridian-nomad-atlas.example/cities/malaga-spain.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 16,
+      "name": "Seville, Spain",
+      "url": "https://meridian-nomad-atlas.example/cities/seville-spain.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 17,
+      "name": "Córdoba, Argentina",
+      "url": "https://meridian-nomad-atlas.example/cities/cordoba-argentina.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 18,
+      "name": "Panama City, Panama",
+      "url": "https://meridian-nomad-atlas.example/cities/panama-city-panama.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 19,
+      "name": "Cartagena, Colombia",
+      "url": "https://meridian-nomad-atlas.example/cities/cartagena-colombia.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 20,
+      "name": "Taipei, Taiwan",
+      "url": "https://meridian-nomad-atlas.example/cities/taipei-taiwan.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 21,
+      "name": "Bangkok, Thailand",
+      "url": "https://meridian-nomad-atlas.example/cities/bangkok-thailand.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 22,
+      "name": "Valencia, Spain",
+      "url": "https://meridian-nomad-atlas.example/cities/valencia-spain.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 23,
+      "name": "Palma, Spain",
+      "url": "https://meridian-nomad-atlas.example/cities/palma-spain.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 24,
+      "name": "Bucharest, Romania",
+      "url": "https://meridian-nomad-atlas.example/cities/bucharest-romania.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 25,
+      "name": "Cluj-Napoca, Romania",
+      "url": "https://meridian-nomad-atlas.example/cities/cluj-napoca-romania.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 26,
+      "name": "Medellín, Colombia",
+      "url": "https://meridian-nomad-atlas.example/cities/medellin-colombia.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 27,
+      "name": "Lima, Peru",
+      "url": "https://meridian-nomad-atlas.example/cities/lima-peru.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 28,
+      "name": "Quito, Ecuador",
+      "url": "https://meridian-nomad-atlas.example/cities/quito-ecuador.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 29,
+      "name": "Buenos Aires, Argentina",
+      "url": "https://meridian-nomad-atlas.example/cities/buenos-aires-argentina.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 30,
+      "name": "Mendoza, Argentina",
+      "url": "https://meridian-nomad-atlas.example/cities/mendoza-argentina.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 31,
+      "name": "Montevideo, Uruguay",
+      "url": "https://meridian-nomad-atlas.example/cities/montevideo-uruguay.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 32,
+      "name": "Phuket, Thailand",
+      "url": "https://meridian-nomad-atlas.example/cities/phuket-thailand.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 33,
+      "name": "Lisbon, Portugal",
+      "url": "https://meridian-nomad-atlas.example/cities/lisbon-portugal.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 34,
+      "name": "Porto, Portugal",
+      "url": "https://meridian-nomad-atlas.example/cities/porto-portugal.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 35,
+      "name": "Miami, United States",
+      "url": "https://meridian-nomad-atlas.example/cities/miami-united-states.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 36,
+      "name": "Montreal, Canada",
+      "url": "https://meridian-nomad-atlas.example/cities/montreal-canada.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 37,
+      "name": "San José, Costa Rica",
+      "url": "https://meridian-nomad-atlas.example/cities/san-jose-costa-rica.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 38,
+      "name": "Ho Chi Minh City, Vietnam",
+      "url": "https://meridian-nomad-atlas.example/cities/ho-chi-minh-city-vietnam.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 39,
+      "name": "Hanoi, Vietnam",
+      "url": "https://meridian-nomad-atlas.example/cities/hanoi-vietnam.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 40,
+      "name": "Kuala Lumpur, Malaysia",
+      "url": "https://meridian-nomad-atlas.example/cities/kuala-lumpur-malaysia.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 41,
+      "name": "Penang (George Town), Malaysia",
+      "url": "https://meridian-nomad-atlas.example/cities/penang-malaysia.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 42,
+      "name": "Barcelona, Spain",
+      "url": "https://meridian-nomad-atlas.example/cities/barcelona-spain.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 43,
+      "name": "Guadalajara, Mexico",
+      "url": "https://meridian-nomad-atlas.example/cities/guadalajara-mexico.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 44,
+      "name": "Mérida, Mexico",
+      "url": "https://meridian-nomad-atlas.example/cities/merida-mexico.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 45,
+      "name": "Cuenca, Ecuador",
+      "url": "https://meridian-nomad-atlas.example/cities/cuenca-ecuador.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 46,
+      "name": "Busan, South Korea",
+      "url": "https://meridian-nomad-atlas.example/cities/busan-south-korea.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 47,
+      "name": "Da Nang, Vietnam",
+      "url": "https://meridian-nomad-atlas.example/cities/da-nang-vietnam.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 48,
+      "name": "Madrid, Spain",
+      "url": "https://meridian-nomad-atlas.example/cities/madrid-spain.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 49,
+      "name": "Austin, United States",
+      "url": "https://meridian-nomad-atlas.example/cities/austin-united-states.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 50,
+      "name": "Oaxaca, Mexico",
+      "url": "https://meridian-nomad-atlas.example/cities/oaxaca-mexico.html"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How does this digital nomad calculator estimate monthly living costs?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Monthly living budgets use the World Bank Household Consumption PPP conversion factor divided by same-year official exchange rates (CC BY 4.0), adjusted for city size, lifestyle tier, and housing type (coliving, studio, or central 1-bedroom)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are all datasets free for commercial use with no copyleft?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. All 7 datasets — Natural Earth 110m (Public Domain), World Bank WDI/ICP & WGI (CC BY 4.0), GeoNames (CC BY 4.0), NASA POWER weather (Public Domain), Measurement Lab NDT (CC0 1.0), and IANA Time Zones (Public Domain) — allow free commercial use with zero copyleft or share-alike restrictions."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How often is the data updated, and does it cost anything to maintain?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Country borders (Natural Earth) are generated once, 30-year NASA weather normals are cached, and World Bank + GeoNames indicators refresh automatically via a free monthly GitHub Actions workflow with zero API keys or hosting fees."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are the 183-day tax rule and the 90-day Europe Schengen limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Staying 183 or more days in one country within a year commonly triggers tax residency. In Europe, most non-EU visitors can stay up to 90 days in any 180-day period across Schengen countries without a special visa. The 12-Month Trip Planner automatically watches both limits as a planning aid."
+      }
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main-workspace">Skip to calculator</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 3a14 14 0 0 0 0 18"></path>
+            <path d="M12 3a14 14 0 0 1 0 18"></path>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+          </svg>
+        </span>
+        <span>
+          <div class="brand-title">Meridian Nomad Atlas</div>
+          <div class="brand-sub">159 Global Cities · 78 Countries · Updated 2026-11-25</div>
+        </span>
+      </a>
+
+      <div class="header-actions">
+        <label class="sr-only" for="currency-select">Display Currency</label>
+        <select id="currency-select" class="currency-select" aria-label="Display Currency">
+          <option value="USD">USD ($)</option>
+          <option value="EUR">EUR (€)</option>
+          <option value="GBP">GBP (£)</option>
+        </select>
+        <button type="button" id="copy-share-url" class="btn btn-outline btn-sm">Share Setup</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="hero-kicker">7 Free Commercial Open Datasets · Zero Copyleft · Auto-Refreshed</p>
+        <h1>Find your next place to live &amp; work remotely.</h1>
+        <p class="hero-lead">
+          Compare 159 cities across 78 countries by real World Bank living costs, fast internet,
+          30-year NASA weather, safety, and team call hours — on a real Natural Earth atlas map.
+        </p>
+      </div>
+      <div class="hero-facts" aria-label="Coverage Facts">
+        <div>
+          <div class="fact-val">159</div>
+          <div class="fact-label">Cities across 78 countries</div>
+        </div>
+        <div>
+          <div class="fact-val">7</div>
+          <div class="fact-label">Verified open datasets (CC BY / CC0 / PD)</div>
+        </div>
+        <div>
+          <div class="fact-val">5</div>
+          <div class="fact-label">Tools for cost, calls &amp; trip planning</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="mode-nav-wrap" aria-label="Calculator Tools">
+    <div class="container mode-nav" role="tablist">
+      <button type="button" class="mode-tab" role="tab" data-tab="explore" aria-selected="true" aria-controls="panel-explore">
+        City Finder <span class="tab-count">159</span>
+      </button>
+      <button type="button" class="mode-tab" role="tab" data-tab="budget" aria-selected="false" aria-controls="panel-budget">
+        Cost &amp; Savings
+      </button>
+      <button type="button" class="mode-tab" role="tab" data-tab="timezones" aria-selected="false" aria-controls="panel-timezones">
+        Work Hours &amp; Time Zones
+      </button>
+      <button type="button" class="mode-tab" role="tab" data-tab="planner" aria-selected="false" aria-controls="panel-planner">
+        12-Month Trip Planner
+      </button>
+      <button type="button" class="mode-tab" role="tab" data-tab="provenance" aria-selected="false" aria-controls="panel-provenance">
+        Data Sources &amp; SEO <span class="tab-count">7</span>
+      </button>
+    </div>
+  </nav>
+
+  <main id="main-workspace" class="main-content">
+    <div class="container">
+
+      <!-- ==================== TAB 1: CITY FINDER ==================== -->
+      <section id="panel-explore" class="tab-panel active" role="tabpanel">
+        <div class="setup-bar">
+          <div class="setup-grid">
+            <div>
+              <div class="control-label">
+                <label for="income-range">Monthly Take-Home Pay
+                  <span class="help-tip" tabindex="0" data-tip="Your net monthly pay after tax. We use it to show how much money you save in each city.">?</span>
+                </label>
+                <span id="income-val" class="control-val">$5,500/mo</span>
+              </div>
+              <input id="income-range" type="range" min="1500" max="20000" step="250" value="5500" />
+            </div>
+
+            <div>
+              <div class="control-label">
+                <span>Spending Style
+                  <span class="help-tip" tabindex="0" data-tip="Budget = local spots & modest stay. Mid = comfortable cafés & coworking. Upscale = premium apartments & dining.">?</span>
+                </span>
+              </div>
+              <div class="segmented" role="group" aria-label="Spending Style">
+                <button type="button" class="seg-btn" data-lifestyle="lean">Budget</button>
+                <button type="button" class="seg-btn active" data-lifestyle="comfortable">Mid</button>
+                <button type="button" class="seg-btn" data-lifestyle="upscale">Upscale</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="control-label" for="month-select">When You Plan to Go</label>
+              <select id="month-select" class="select">
+                <option value="-1">Any Time (Year Avg)</option>
+                <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="control-label" for="team-tz">Your Team / Client Time Zone
+                <span class="help-tip" tabindex="0" data-tip="Where your coworkers or clients work 9-to-5. We measure daily shared call hours.">?</span>
+              </label>
+              <select id="team-tz" class="select"></select>
+            </div>
+          </div>
+
+          <div class="setup-footer">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <span style="font-size:12.5px;font-weight:700;color:var(--ink-muted);">Quick Focus:</span>
+              <div class="preset-list">
+                <button type="button" class="preset-btn active" data-preset="balanced">Balanced</button>
+                <button type="button" class="preset-btn" data-preset="founder">Save Money</button>
+                <button type="button" class="preset-btn" data-preset="engineer">Live Team Calls</button>
+                <button type="button" class="preset-btn" data-preset="sunseeker">Great Weather</button>
+                <button type="button" class="preset-btn" data-preset="family">Safe &amp; Calm</button>
+              </div>
+            </div>
+            <button type="button" id="toggle-advanced" class="btn btn-outline btn-sm">Customize Filters &amp; Priorities</button>
+          </div>
+          <p id="preset-hint" style="margin:8px 0 0;font-size:12.5px;color:var(--ink-muted);">
+            A well-rounded mix of cost, fast Wi-Fi, pleasant weather, safety, and work-hour overlap.
+          </p>
+
+          <div id="advanced-drawer" class="advanced-drawer">
+            <div class="filters-subgrid">
+              <div>
+                <div class="control-label"><span>Housing Type</span></div>
+                <div class="segmented" role="group" aria-label="Housing Type">
+                  <button type="button" class="seg-btn" data-housing="coliving">Coliving</button>
+                  <button type="button" class="seg-btn active" data-housing="studio">Studio</button>
+                  <button type="button" class="seg-btn" data-housing="onebr">1-BR</button>
+                </div>
+              </div>
+              <div>
+                <div class="control-label"><label for="ideal-temp">Ideal Temperature</label><span id="ideal-temp-val" class="control-val">22°C</span></div>
+                <input id="ideal-temp" type="range" min="10" max="30" step="1" value="22" />
+              </div>
+              <div>
+                <div class="control-label"><label for="min-speed">Minimum Internet Speed</label><span id="min-speed-val" class="control-val">Any speed</span></div>
+                <input id="min-speed" type="range" min="0" max="200" step="20" value="0" />
+              </div>
+              <div>
+                <div class="control-label"><label for="max-budget">Max Monthly Cost</label><span id="max-budget-val" class="control-val">$5,000/mo</span></div>
+                <input id="max-budget" type="range" min="1200" max="6000" step="100" value="5000" />
+              </div>
+            </div>
+
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Fine-tune how much each factor counts in your Match Score:</div>
+            <div class="weights-grid">
+              <div><div class="control-label"><label for="w-cost">Low Cost</label><span id="w-cost-val" class="control-val">25%</span></div><input id="w-cost" type="range" min="0" max="60" value="25" /></div>
+              <div><div class="control-label"><label for="w-internet">Fast Wi-Fi</label><span id="w-internet-val" class="control-val">22%</span></div><input id="w-internet" type="range" min="0" max="60" value="22" /></div>
+              <div><div class="control-label"><label for="w-climate">Weather</label><span id="w-climate-val" class="control-val">18%</span></div><input id="w-climate" type="range" min="0" max="60" value="18" /></div>
+              <div><div class="control-label"><label for="w-stability">Safety &amp; Air</label><span id="w-stability-val" class="control-val">20%</span></div><input id="w-stability" type="range" min="0" max="60" value="20" /></div>
+              <div><div class="control-label"><label for="w-timezone">Team Calls</label><span id="w-timezone-val" class="control-val">15%</span></div><input id="w-timezone" type="range" min="0" max="60" value="15" /></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Natural Earth Real Country World Map -->
+        <div id="world-map-panel" class="map-panel">
+          <div class="map-head">
+            <div>
+              <strong style="font-family:var(--font-serif);font-size:18px;">Interactive World Atlas</strong>
+              <span style="font-size:12.5px;color:var(--ink-muted);margin-left:8px;">Click any shaded country to filter cities, or click a dot for its full guide (Natural Earth · Public Domain).</span>
+            </div>
+            <div class="map-legend">
+              <span><span class="map-dot-sample" style="background:#0f5c52;"></span>70+ Top Match</span>
+              <span><span class="map-dot-sample" style="background:#9b6c16;"></span>60–69 Good Fit</span>
+              <span><span class="map-dot-sample" style="background:#b95730;"></span>&lt;60 Niche Fit</span>
+            </div>
+          </div>
+          <div id="world-map-stage"></div>
+          <div id="map-tooltip" class="map-tooltip" role="status"></div>
+        </div>
+
+        <div id="explore-kpis" class="kpi-strip"></div>
+
+        <div class="results-toolbar">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div class="region-filters" role="group" aria-label="Filter by Region">
+              <button type="button" class="filter-chip active" data-region="All">All Regions</button>
+              <button type="button" class="filter-chip" data-region="Europe">Europe</button>
+              <button type="button" class="filter-chip" data-region="Americas">Americas</button>
+              <button type="button" class="filter-chip" data-region="Asia-Pacific">Asia-Pacific</button>
+              <button type="button" class="filter-chip" data-region="Middle East & Africa">Middle East &amp; Africa</button>
+            </div>
+            <span id="active-country-badge"></span>
+          </div>
+          <div class="toolbar-right" style="flex-wrap:wrap;">
+            <label class="sr-only" for="city-search">Search cities or countries</label>
+            <input id="city-search" type="search" class="search-input" placeholder="Search 159 cities or countries..." />
+            <label class="sr-only" for="sort-select">Sort Cities</label>
+            <select id="sort-select" class="select" style="width:auto;padding:7px 11px;font-size:13px;">
+              <option value="composite">Sort: Best Match</option>
+              <option value="cost">Sort: Lowest Cost</option>
+              <option value="internet">Sort: Fastest Internet</option>
+              <option value="climate">Sort: Best Weather</option>
+              <option value="stability">Sort: Safest &amp; Most Stable</option>
+              <option value="timezone">Sort: Most Team Overlap</option>
+            </select>
+            <button type="button" id="view-toggle" class="btn btn-outline btn-sm">Table View</button>
+          </div>
+        </div>
+
+        <div id="explore-results">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>#</th><th>City</th><th>Match</th><th>Est. Cost/mo</th><th>Internet</th><th>Avg Temp</th><th>Safety</th></tr></thead>
+              <tbody>
+              <tr>
+                <td class="num">1</td>
+                <td><a href="cities/valparaiso-chile.html"><strong>Valparaíso</strong>, Chile</a></td>
+                <td class="num"><strong>82</strong>/100</td>
+                <td class="num">$1,885/mo</td>
+                <td class="num">226 Mbps</td>
+                <td class="num">14.3°C</td>
+                <td>Safe &amp; well-run</td>
+              </tr>
+              <tr>
+                <td class="num">2</td>
+                <td><a href="cities/santiago-chile.html"><strong>Santiago</strong>, Chile</a></td>
+                <td class="num"><strong>80</strong>/100</td>
+                <td class="num">$2,237/mo</td>
+                <td class="num">249 Mbps</td>
+                <td class="num">15.3°C</td>
+                <td>Safe &amp; well-run</td>
+              </tr>
+              <tr>
+                <td class="num">3</td>
+                <td><a href="cities/las-palmas-spain.html"><strong>Las Palmas</strong>, Spain</a></td>
+                <td class="num"><strong>76</strong>/100</td>
+                <td class="num">$2,552/mo</td>
+                <td class="num">207 Mbps</td>
+                <td class="num">20.2°C</td>
+                <td>Safe &amp; well-run</td>
+              </tr>
+              <tr>
+                <td class="num">4</td>
+                <td><a href="cities/rio-de-janeiro-brazil.html"><strong>Rio de Janeiro</strong>, Brazil</a></td>
+                <td class="num"><strong>76</strong>/100</td>
+                <td class="num">$2,020/mo</td>
+                <td class="num">161 Mbps</td>
+                <td class="num">23.4°C</td>
+                <td>Generally comfortable</td>
+              </tr>
+              <tr>
+                <td class="num">5</td>
+                <td><a href="cities/sao-paulo-brazil.html"><strong>São Paulo</strong>, Brazil</a></td>
+                <td class="num"><strong>75</strong>/100</td>
+                <td class="num">$2,161/mo</td>
+                <td class="num">161 Mbps</td>
+                <td class="num">19.6°C</td>
+                <td>Generally comfortable</td>
+              </tr>
+              <tr>
+                <td class="num">6</td>
+                <td><a href="cities/curitiba-brazil.html"><strong>Curitiba</strong>, Brazil</a></td>
+                <td class="num"><strong>75</strong>/100</td>
+                <td class="num">$1,700/mo</td>
+                <td class="num">155 Mbps</td>
+                <td class="num">17.9°C</td>
+                <td>Generally comfortable</td>
+              </tr>
+              <tr>
+                <td class="num">7</td>
+                <td><a href="cities/funchal-portugal.html"><strong>Funchal (Madeira)</strong>, Portugal</a></td>
+                <td class="num"><strong>74</strong>/100</td>
+                <td class="num">$2,453/mo</td>
+                <td class="num">169 Mbps</td>
+                <td class="num">19.1°C</td>
+                <td>Safe &amp; well-run</td>
+              </tr>
+              <tr>
+                <td class="num">8</td>
+                <td><a href="cities/santa-marta-colombia.html"><strong>Santa Marta</strong>, Colombia</a></td>
+                <td class="num"><strong>74</strong>/100</td>
+                <td class="num">$1,420/mo</td>
+                <td class="num">113 Mbps</td>
+                <td class="num">27.3°C</td>
+                <td>Generally comfortable</td>
+              </tr>
+              <tr>
+                <td class="num">9</td>
+                <td><a href="cities/florianopolis-brazil.html"><strong>Florianópolis</strong>, Brazil</a></td>
+                <td class="num"><strong>74</strong>/100</td>
+                <td class="num">$1,877/mo</td>
+                <td class="num">146 Mbps</td>
+                <td class="num">20.3°C</td>
+                <td>Generally comfortable</td>
+              </tr>
+              <tr>
+                <td class="num">10</td>
+                <td><a href="cities/kaohsiung-taiwan.html"><strong>Kaohsiung</strong>, Taiwan</a></td>
+                <td class="num"><strong>74</strong>/100</td>
+                <td class="num">$1,847/mo</td>
+                <td class="num">207 Mbps</td>
+                <td class="num">24.9°C</td>
+                <td>Safe &amp; well-run</td>
+              </tr>
+              <tr>
+                <td class="num">11</td>
+                <td><a href="cities/taichung-taiwan.html"><strong>Taichung</strong>, Taiwan</a></td>
+                <td class="num"><strong>74</strong>/100</td>
+                <td class="num">$1,885/mo</td>
+                <td class="num">207 Mbps</td>
+                <td class="num">22.9°C</td>
+                <td>Safe &amp; well-run</td>
+              </tr>
+              <tr>
+                <td class="num">12</td>
+                <td><a href="cities/chiang-mai-thailand.html"><strong>Chiang Mai</strong>, Thailand</a></td>
+                <td class="num"><strong>74</strong>/100</td>
+                <td class="num">$1,085/mo</td>
+                <td class="num">196 Mbps</td>
+                <td class="num">23.1°C</td>
+                <td>Generally comfortable</td>
+              </tr>
+              <tr>
+                <td class="num">13</td>
+                <td><a href="cities/faro-portugal.html"><strong>Faro</strong>, Portugal</a></td>
+                <td class="num"><strong>73</strong>/100</td>
+                <td class="num">$2,378/mo</td>
+                <td class="num">169 Mbps</td>
+                <td class="num">17.9°C</td>
+                <td>Safe &amp; well-run</td>
+              </tr>
+              <tr>
+                <td class="num">14</td>
+                <td><a href="cities/bogota-colombia.html"><strong>Bogotá</strong>, Colombia</a></td>
+                <td class="num"><strong>73</strong>/100</td>
+                <td class="num">$1,736/mo</td>
+                <td class="num">125 Mbps</td>
+                <td class="num">18.8°C</td>
+                <td>Generally comfortable</td>
+              </tr>
+              <tr>
+                <td class="num">15</td>
+                <td><a href="cities/malaga-spain.html"><strong>Málaga</strong>, Spain</a></td>
+                <td class="num"><strong>72</strong>/100</td>
+                <td class="num">$2,710/mo</td>
+                <td class="num">207 Mbps</td>
+                <td class="num">18°C</td>
+                <td>Safe &amp; well-run</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 2: COST & SAVINGS ==================== -->
+      <section id="panel-budget" class="tab-panel" role="tabpanel">
+        <div class="explainer-note">
+          <span class="explainer-icon" aria-hidden="true">i</span>
+          <div><strong>How this works:</strong> Pick where you live today and any of our 159 global cities. Using World Bank household price levels and inflation, we show how much cheaper life abroad is, your extra 5-year invested wealth, and how long your cash savings last.</div>
+        </div>
+        <div class="two-col-wide">
+          <aside class="panel">
+            <div class="panel-header"><div><h2 class="panel-title">Compare Home vs. Abroad</h2><p class="panel-subtitle">Synced with your income &amp; spending style</p></div></div>
+            <div class="control-group"><label class="control-label" for="home-base-select">Where You Live Now</label><select id="home-base-select" class="select"></select></div>
+            <div class="control-group"><label class="control-label" for="target-city-select">City You're Considering (159)</label><select id="target-city-select" class="select"></select></div>
+            <div class="control-group">
+              <div class="control-label"><label for="savings-range">Cash Savings ("Runway") <span class="help-tip" tabindex="0" data-tip="Savings you could live on without new income. We show how many months it covers.">?</span></label><span id="savings-val" class="control-val">$25,000</span></div>
+              <input id="savings-range" type="range" min="3000" max="150000" step="1000" value="25000" />
+            </div>
+            <div class="control-group">
+              <div class="control-label"><label for="return-range">Yearly Investment Return <span class="help-tip" tabindex="0" data-tip="Estimated annual growth if you invest leftover monthly savings.">?</span></label><span id="return-val" class="control-val">7% / yr</span></div>
+              <input id="return-range" type="range" min="0" max="12" step="0.5" value="7" />
+            </div>
+          </aside>
+          <div id="budget-summary"></div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 3: WORK HOURS & TIME ZONES ==================== -->
+      <section id="panel-timezones" class="tab-panel" role="tabpanel">
+        <div class="explainer-note">
+          <span class="explainer-icon" aria-hidden="true">i</span>
+          <div><strong>Why overlap matters:</strong> Pick your team's headquarters time zone and your ideal local workday to see which of our 159 cities make live meetings effortless.</div>
+        </div>
+        <div class="panel" style="margin-bottom:20px;">
+          <div class="panel-header"><div><h2 class="panel-title">Work-Hour &amp; Time Zone Checker</h2><p class="panel-subtitle">Backed by the Public Domain IANA Time Zone Database</p></div></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;">
+            <div><label class="control-label" for="tz-team-select">Team Office (9 AM–5 PM)</label><select id="tz-team-select" class="select"></select></div>
+            <div>
+              <label class="control-label" for="tz-start">Your Local Start</label>
+              <select id="tz-start" class="select"><option value="7">7:00 AM</option><option value="8">8:00 AM</option><option value="9" selected>9:00 AM</option><option value="10">10:00 AM</option><option value="12">12:00 PM</option><option value="14">2:00 PM</option></select>
+            </div>
+            <div>
+              <label class="control-label" for="tz-end">Your Local Finish</label>
+              <select id="tz-end" class="select"><option value="16">4:00 PM</option><option value="17">5:00 PM</option><option value="18" selected>6:00 PM</option><option value="20">8:00 PM</option><option value="22">10:00 PM</option></select>
+            </div>
+            <div>
+              <label class="control-label" for="tz-region-select">Region</label>
+              <select id="tz-region-select" class="select"><option value="All">All Regions (159)</option><option value="Europe">Europe</option><option value="Americas">Americas</option><option value="Asia-Pacific">Asia-Pacific</option><option value="Middle East & Africa">Middle East &amp; Africa</option></select>
+            </div>
+            <div>
+              <label class="control-label" for="tz-search">Search City</label>
+              <input id="tz-search" type="search" class="input" placeholder="e.g., Tokyo, Lisbon..." />
+            </div>
+          </div>
+        </div>
+        <div id="tz-matrix" class="panel"></div>
+      </section>
+
+      <!-- ==================== TAB 4: 12-MONTH TRIP PLANNER ==================== -->
+      <section id="panel-planner" class="tab-panel" role="tabpanel">
+        <div class="explainer-note">
+          <span class="explainer-icon" aria-hidden="true">i</span>
+          <div><strong>Plan a full year abroad safely:</strong> Mix any of our 159 cities month-by-month, track live NASA weather and yearly cost, and get automatic alerts for the <strong>183-day tax rule</strong> and <strong>Europe's 90-day Schengen limit</strong>.</div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div><h2 class="panel-title">12-Month Nomad Year Planner</h2><p class="panel-subtitle">Customize every month, then download your route as CSV or JSON</p></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="preset-btn" data-route-preset="spring">Chase 22°C Spring</button>
+              <button type="button" class="preset-btn" data-route-preset="value">Save the Most Money</button>
+              <button type="button" class="preset-btn" data-route-preset="ussync">Stay in US Call Hours</button>
+              <button type="button" id="export-csv" class="btn btn-outline btn-sm">Download CSV</button>
+              <button type="button" id="export-json" class="btn btn-outline btn-sm">Download JSON</button>
+            </div>
+          </div>
+          <div id="planner-alerts"></div>
+          <div id="planner-kpis" class="kpi-strip"></div>
+          <div id="planner-grid" class="month-planner-grid"></div>
+          <h3 style="font-family:var(--font-serif);font-size:19px;margin:8px 0 10px;">Days Planned Per Country (183-Day Check)</h3>
+          <div id="planner-country-breakdown"></div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 5: DATA SOURCES & SEO ==================== -->
+      <section id="panel-provenance" class="tab-panel" role="tabpanel">
+        <div class="explainer-note">
+          <span class="explainer-icon" aria-hidden="true">i</span>
+          <div><strong>Automated, free, and 100% cleared for commercial use:</strong> Country borders (Natural Earth) are built once, NASA 30-year climate normals are cached, and World Bank + GeoNames data refreshes automatically via a free monthly GitHub Actions workflow — with <strong>zero copyleft restrictions</strong>.</div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div><h2 class="panel-title">7 Verified Free-for-Commercial-Use Datasets</h2><p class="panel-subtitle">Last refreshed: 2026-11-25 · 159 cities across 78 countries.</p></div>
+            <button type="button" id="copy-attribution" class="btn btn-primary btn-sm">Copy All Citations</button>
+          </div>
+          <div id="dataset-cards" class="dataset-grid"></div>
+
+          <h3 style="font-family:var(--font-serif);font-size:20px;margin:0 0 10px;">Popular Sources We Intentionally Left Out</h3>
+          <div class="table-wrap" style="margin-bottom:24px;">
+            <table class="data-table"><thead><tr><th>Excluded Source</th><th>License</th><th>Why We Left It Out</th></tr></thead><tbody id="excluded-table"></tbody></table>
+          </div>
+
+          <h3 style="font-family:var(--font-serif);font-size:20px;margin:0 0 8px;">Built-In SEO &amp; Automated Refresh Pipeline</h3>
+          <p class="panel-subtitle" style="margin-bottom:12px;">
+            Generates <strong>159 static city pages</strong> (<code>/cities/*.html</code>), <code>sitemap.xml</code>, <code>robots.txt</code>, <code>datasets.json</code>, and runs monthly via <code>.github/workflows/refresh-data.yml</code>. Live Schema.org JSON-LD:
+          </p>
+          <pre id="jsonld-preview" class="code-block"></pre>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <section class="editorial-section" aria-labelledby="methodology-heading">
+    <div class="container editorial-grid">
+      <div>
+        <h2 id="methodology-heading">How Every Score Is Built (In Plain English)</h2>
+        <p style="color:var(--ink-secondary);">
+          Every one of our 159 cities gets a 0–100 <strong>Match Score</strong> answering five everyday questions:
+          <em>How affordable is daily life?</em> (World Bank household price levels),
+          <em>Will video calls stay smooth?</em> (M-Lab internet speed &amp; delay),
+          <em>Does the weather match what I like?</em> (live NASA POWER 30-year monthly normals),
+          <em>How safe and stable is it?</em> (World Bank governance &amp; PM2.5 air quality), and
+          <em>Do work hours overlap with my team?</em> (IANA time zones).
+        </p>
+        <h3 style="font-family:var(--font-serif);font-size:21px;margin:24px 0 6px;">Browse All 159 Static City Guides</h3>
+        <nav aria-label="All City Guides">
+          
+      <div style="margin-top:16px;">
+        <h4 style="margin:0 0 6px;font-size:13.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);">Europe (64)</h4>
+        <div class="city-seo-links" style="margin-top:0;">
+          <a href="cities/amsterdam-the-netherlands.html">Amsterdam</a> <a href="cities/antalya-turkey.html">Antalya</a> <a href="cities/athens-greece.html">Athens</a> <a href="cities/barcelona-spain.html">Barcelona</a> <a href="cities/belgrade-serbia.html">Belgrade</a> <a href="cities/berlin-germany.html">Berlin</a> <a href="cities/bologna-italy.html">Bologna</a> <a href="cities/brno-czechia.html">Brno</a> <a href="cities/bucharest-romania.html">Bucharest</a> <a href="cities/budapest-hungary.html">Budapest</a> <a href="cities/cluj-napoca-romania.html">Cluj-Napoca</a> <a href="cities/copenhagen-denmark.html">Copenhagen</a> <a href="cities/dublin-ireland.html">Dublin</a> <a href="cities/dubrovnik-croatia.html">Dubrovnik</a> <a href="cities/edinburgh-united-kingdom.html">Edinburgh</a> <a href="cities/faro-portugal.html">Faro</a> <a href="cities/florence-italy.html">Florence</a> <a href="cities/funchal-portugal.html">Funchal (Madeira)</a> <a href="cities/gdansk-poland.html">Gdańsk</a> <a href="cities/geneva-switzerland.html">Geneva</a> <a href="cities/hamburg-germany.html">Hamburg</a> <a href="cities/helsinki-finland.html">Helsinki</a> <a href="cities/istanbul-turkey.html">Istanbul</a> <a href="cities/izmir-turkey.html">Izmir</a> <a href="cities/krakow-poland.html">Kraków</a> <a href="cities/las-palmas-spain.html">Las Palmas</a> <a href="cities/limassol-cyprus.html">Limassol</a> <a href="cities/lisbon-portugal.html">Lisbon</a> <a href="cities/ljubljana-slovenia.html">Ljubljana</a> <a href="cities/london-united-kingdom.html">London</a> <a href="cities/lyon-france.html">Lyon</a> <a href="cities/madrid-spain.html">Madrid</a> <a href="cities/malaga-spain.html">Málaga</a> <a href="cities/manchester-united-kingdom.html">Manchester</a> <a href="cities/milan-italy.html">Milan</a> <a href="cities/munich-germany.html">Munich</a> <a href="cities/nice-france.html">Nice</a> <a href="cities/oslo-norway.html">Oslo</a> <a href="cities/palermo-italy.html">Palermo</a> <a href="cities/palma-spain.html">Palma</a> <a href="cities/paris-france.html">Paris</a> <a href="cities/podgorica-montenegro.html">Podgorica</a> <a href="cities/porto-portugal.html">Porto</a> <a href="cities/prague-czechia.html">Prague</a> <a href="cities/reykjavik-iceland.html">Reykjavik</a> <a href="cities/riga-latvia.html">Riga</a> <a href="cities/rome-italy.html">Rome</a> <a href="cities/rotterdam-the-netherlands.html">Rotterdam</a> <a href="cities/seville-spain.html">Seville</a> <a href="cities/sofia-bulgaria.html">Sofia</a> <a href="cities/split-croatia.html">Split</a> <a href="cities/stockholm-sweden.html">Stockholm</a> <a href="cities/tallinn-estonia.html">Tallinn</a> <a href="cities/tbilisi-georgia.html">Tbilisi</a> <a href="cities/thessaloniki-greece.html">Thessaloniki</a> <a href="cities/tirana-albania.html">Tirana</a> <a href="cities/valencia-spain.html">Valencia</a> <a href="cities/valletta-malta.html">Valletta</a> <a href="cities/vienna-austria.html">Vienna</a> <a href="cities/vilnius-lithuania.html">Vilnius</a> <a href="cities/warsaw-poland.html">Warsaw</a> <a href="cities/yerevan-armenia.html">Yerevan</a> <a href="cities/zagreb-croatia.html">Zagreb</a> <a href="cities/zurich-switzerland.html">Zurich</a>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <h4 style="margin:0 0 6px;font-size:13.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);">Americas (37)</h4>
+        <div class="city-seo-links" style="margin-top:0;">
+          <a href="cities/austin-united-states.html">Austin</a> <a href="cities/bogota-colombia.html">Bogotá</a> <a href="cities/buenos-aires-argentina.html">Buenos Aires</a> <a href="cities/calgary-canada.html">Calgary</a> <a href="cities/cartagena-colombia.html">Cartagena</a> <a href="cities/chicago-united-states.html">Chicago</a> <a href="cities/cordoba-argentina.html">Córdoba</a> <a href="cities/cuenca-ecuador.html">Cuenca</a> <a href="cities/curitiba-brazil.html">Curitiba</a> <a href="cities/cusco-peru.html">Cusco</a> <a href="cities/denver-united-states.html">Denver</a> <a href="cities/florianopolis-brazil.html">Florianópolis</a> <a href="cities/guadalajara-mexico.html">Guadalajara</a> <a href="cities/lima-peru.html">Lima</a> <a href="cities/medellin-colombia.html">Medellín</a> <a href="cities/mendoza-argentina.html">Mendoza</a> <a href="cities/merida-mexico.html">Mérida</a> <a href="cities/mexico-city-mexico.html">Mexico City</a> <a href="cities/miami-united-states.html">Miami</a> <a href="cities/montevideo-uruguay.html">Montevideo</a> <a href="cities/montreal-canada.html">Montreal</a> <a href="cities/new-york-city-united-states.html">New York City</a> <a href="cities/oaxaca-mexico.html">Oaxaca</a> <a href="cities/panama-city-panama.html">Panama City</a> <a href="cities/playa-del-carmen-mexico.html">Playa del Carmen</a> <a href="cities/puerto-vallarta-mexico.html">Puerto Vallarta</a> <a href="cities/quito-ecuador.html">Quito</a> <a href="cities/rio-de-janeiro-brazil.html">Rio de Janeiro</a> <a href="cities/san-francisco-united-states.html">San Francisco</a> <a href="cities/san-jose-costa-rica.html">San José</a> <a href="cities/santa-marta-colombia.html">Santa Marta</a> <a href="cities/santiago-chile.html">Santiago</a> <a href="cities/sao-paulo-brazil.html">São Paulo</a> <a href="cities/seattle-united-states.html">Seattle</a> <a href="cities/toronto-canada.html">Toronto</a> <a href="cities/valparaiso-chile.html">Valparaíso</a> <a href="cities/vancouver-canada.html">Vancouver</a>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <h4 style="margin:0 0 6px;font-size:13.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);">Asia-Pacific (38)</h4>
+        <div class="city-seo-links" style="margin-top:0;">
+          <a href="cities/almaty-kazakhstan.html">Almaty</a> <a href="cities/auckland-new-zealand.html">Auckland</a> <a href="cities/bali-indonesia.html">Bali (Denpasar/Canggu)</a> <a href="cities/bangkok-thailand.html">Bangkok</a> <a href="cities/bengaluru-india.html">Bengaluru</a> <a href="cities/brisbane-australia.html">Brisbane</a> <a href="cities/busan-south-korea.html">Busan</a> <a href="cities/cebu-city-philippines.html">Cebu City</a> <a href="cities/chiang-mai-thailand.html">Chiang Mai</a> <a href="cities/colombo-sri-lanka.html">Colombo</a> <a href="cities/da-nang-vietnam.html">Da Nang</a> <a href="cities/fukuoka-japan.html">Fukuoka</a> <a href="cities/goa-india.html">Goa (Panaji)</a> <a href="cities/hanoi-vietnam.html">Hanoi</a> <a href="cities/ho-chi-minh-city-vietnam.html">Ho Chi Minh City</a> <a href="cities/hong-kong-hong-kong.html">Hong Kong</a> <a href="cities/jakarta-indonesia.html">Jakarta</a> <a href="cities/kaohsiung-taiwan.html">Kaohsiung</a> <a href="cities/kathmandu-nepal.html">Kathmandu</a> <a href="cities/kuala-lumpur-malaysia.html">Kuala Lumpur</a> <a href="cities/kyoto-japan.html">Kyoto</a> <a href="cities/manila-philippines.html">Manila</a> <a href="cities/melbourne-australia.html">Melbourne</a> <a href="cities/mumbai-india.html">Mumbai</a> <a href="cities/osaka-japan.html">Osaka</a> <a href="cities/penang-malaysia.html">Penang (George Town)</a> <a href="cities/perth-australia.html">Perth</a> <a href="cities/phuket-thailand.html">Phuket</a> <a href="cities/sapporo-japan.html">Sapporo</a> <a href="cities/seoul-south-korea.html">Seoul</a> <a href="cities/singapore-singapore.html">Singapore</a> <a href="cities/sydney-australia.html">Sydney</a> <a href="cities/taichung-taiwan.html">Taichung</a> <a href="cities/taipei-taiwan.html">Taipei</a> <a href="cities/tashkent-uzbekistan.html">Tashkent</a> <a href="cities/tokyo-japan.html">Tokyo</a> <a href="cities/wellington-new-zealand.html">Wellington</a> <a href="cities/yogyakarta-indonesia.html">Yogyakarta</a>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <h4 style="margin:0 0 6px;font-size:13.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);">Middle East &amp; Africa (20)</h4>
+        <div class="city-seo-links" style="margin-top:0;">
+          <a href="cities/abu-dhabi-united-arab-emirates.html">Abu Dhabi</a> <a href="cities/accra-ghana.html">Accra</a> <a href="cities/amman-jordan.html">Amman</a> <a href="cities/cairo-egypt.html">Cairo</a> <a href="cities/cape-town-south-africa.html">Cape Town</a> <a href="cities/casablanca-morocco.html">Casablanca</a> <a href="cities/dakar-senegal.html">Dakar</a> <a href="cities/doha-qatar.html">Doha</a> <a href="cities/dubai-united-arab-emirates.html">Dubai</a> <a href="cities/durban-south-africa.html">Durban</a> <a href="cities/johannesburg-south-africa.html">Johannesburg</a> <a href="cities/kigali-rwanda.html">Kigali</a> <a href="cities/marrakech-morocco.html">Marrakech</a> <a href="cities/muscat-oman.html">Muscat</a> <a href="cities/nairobi-kenya.html">Nairobi</a> <a href="cities/port-louis-mauritius.html">Port Louis (Mauritius)</a> <a href="cities/riyadh-saudi-arabia.html">Riyadh</a> <a href="cities/tangier-morocco.html">Tangier</a> <a href="cities/tunis-tunisia.html">Tunis</a> <a href="cities/windhoek-namibia.html">Windhoek</a>
+        </div>
+      </div>
+        </nav>
+      </div>
+
+      <div>
+        <h2>Common Questions</h2>
+        <details class="faq-item" open>
+          <summary>How does this calculator estimate monthly living costs?</summary>
+          <p>We apply World Bank Household Consumption PPP conversion factors matched to same-year official exchange rates (CC BY 4.0) to a standard remote-worker basket, adjusted for city size and your chosen housing type.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Are all 7 data sources genuinely free for commercial websites?</summary>
+          <p>Yes. Every source uses CC BY 4.0, CC0 1.0, or Public Domain terms. Paid APIs (Numbeo), Non-Commercial feeds (Ookla Open Data, Cloudflare Radar, Open-Meteo free tier), and copyleft databases (OpenStreetMap ODbL) are intentionally excluded.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How do the country map and city numbers stay up to date for free?</summary>
+          <p>Natural Earth country borders are pre-projected once into SVG. World Bank economic/governance indicators and GeoNames metadata refresh automatically via a free monthly GitHub Actions schedule with zero API keys.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What are the 183-day rule and Europe's 90-day Schengen rule?</summary>
+          <p>Spending 183+ days in one country in a year commonly triggers tax residency, while non-EU visitors in Europe's Schengen Area can usually stay up to 90 days in any 180-day period without a special visa.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div><strong>Meridian Nomad Atlas</strong> · Natural Earth (Public Domain), World Bank (CC BY 4.0), GeoNames (CC BY 4.0), NASA POWER (Public Domain), M-Lab NDT (CC0), IANA tzdb (Public Domain).</div>
+      <div style="display:flex;gap:14px;">
+        <a href="datasets.json">datasets.json</a>
+        <a href="sitemap.xml">sitemap.xml</a>
+        <a href="robots.txt">robots.txt</a>
+      </div>
+    </div>
+  </footer>
+
+  <div id="drawer-backdrop" class="drawer-backdrop" aria-hidden="true"></div>
+  <aside id="city-drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <div class="drawer-head">
+      <div><h2 id="drawer-title" class="panel-title" style="font-size:24px;"></h2><p id="drawer-subtitle" class="panel-subtitle"></p></div>
+      <button type="button" id="drawer-close" class="close-btn" aria-label="Close city guide">&times;</button>
+    </div>
+    <div id="drawer-body" class="drawer-body"></div>
+  </aside>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

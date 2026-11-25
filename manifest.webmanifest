@@ -1,0 +1,9 @@
+{
+  "name": "Meridian Nomad Atlas — Digital Nomad Calculator",
+  "short_name": "Meridian Atlas",
+  "description": "Multi-function digital nomad cost of living, geo-arbitrage, climate, broadband, and time-zone calculator powered by verified commercial-free open datasets.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f6f3ec",
+  "theme_color": "#125d53"
+}
