@@ -1,5 +1,5 @@
 // Turns data/raw into the compact datasets in data/. Run: npm run data:build
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import { unzip, parseCSV, readJSON, writeJSON, slugify, exists } from '../lib/util.mjs';
 import { WDI, WGI, ICP, SOURCES } from './sources.mjs';
 import { CITY_LIST } from './cities.list.mjs';
@@ -26,6 +26,17 @@ const PRICE_BLACKLIST = new Set(['IRN', 'SYR', 'YEM', 'ZWE', 'SDN', 'SSD', 'MMR'
 const AKA = { TUR: 'Turkey', CZE: 'Czech Republic', CIV: 'Ivory Coast', SWZ: 'Swaziland', MKD: 'Macedonia', MMR: 'Burma', CPV: 'Cape Verde', TLS: 'East Timor', COD: 'Democratic Republic of the Congo', NLD: 'Holland', GBR: 'UK', USA: 'USA', ARE: 'UAE' };
 const SLUG_OVERRIDES = { TUR: 'turkey', CIV: 'ivory-coast' };
 const REGION_NAMES = { ECS: 'Europe & Central Asia', LCN: 'Latin America & Caribbean', MEA: 'Middle East & North Africa', SSF: 'Sub-Saharan Africa', EAS: 'East Asia & Pacific', SAS: 'South Asia', NAC: 'North America' };
+// "AC power plugs and sockets: British and related types" is a catch-all Wikidata item; in practice it marks the large
+// 15 A round-pin plug (Type M) in countries that also use BS 546 (Type D). Type G comes from the explicit BS 1363 label.
+const BRITISH_RELATED = /British and related/;
+// Gaps in Wikidata that we patch by hand.
+const PLUG_EXTRA = { THA: ['O'] };
+const VOLT_OVERRIDES = { BLZ: [110, 220], JAM: [110] };
+// GeoNames still lists Kazakhstan's capital as Nur-Sultan; it was renamed back to Astana in September 2022.
+const CAPITAL_OVERRIDES = { KAZ: 'Astana' };
+// ICP 2021 prices for these economies were collected during a multiple-exchange-rate crisis, so the split across categories
+// is not usable (Lebanon: food at 2.6 times and health at 0.4 times the overall level). Every category uses the overall level.
+const ICP_STRUCTURE_UNRELIABLE = new Set(['LBN']);
 const PLUG = { 'NEMA 1-15': 'A', 'NEMA 5-15': 'B', Europlug: 'C', 'BS 546': 'D', 'Type E': 'E', Schuko: 'F', 'BS 1363': 'G', 'Type H': 'H', 'AS/NZS 3112': 'I', 'SN 441011': 'J', 'Type K': 'K', 'Type L': 'L', 'IEC 60906-1': 'N' };
 
 async function wbSeries(file) {
@@ -39,6 +50,12 @@ async function wbSeries(file) {
     m.get(iso).set(+r.date, +r.value);
   }
   return m;
+}
+/** When the cached downloads in a raw folder were fetched (the newest file), not when this script ran. */
+async function fetchedOn(dir) {
+  let t = 0;
+  for (const f of await readdir(dir)) t = Math.max(t, (await stat(dir + '/' + f)).mtimeMs);
+  return new Date(t || Date.now()).toISOString().slice(0, 10);
 }
 const latest = (m, iso, maxYear = 2100) => {
   const s = m.get(iso); if (!s) return null;
@@ -72,6 +89,27 @@ function simplify(pts, tol) {
 }
 const ringArea = (r) => { let a = 0; for (let i = 0, j = r.length - 1; i < r.length; j = i++) a += (r[j][0] + r[i][0]) * (r[j][1] - r[i][1]); return Math.abs(a / 2); };
 
+// Coastline points: Natural Earth vertices that belong to only one country (shared vertices are land borders).
+async function coastFinder() {
+  const ne = await readJSON(`${RAW}/naturalearth/ne_50m_admin_0_countries.geojson`);
+  const cnt = new Map();
+  for (const f of ne.features) {
+    const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates; const seen = new Set();
+    for (const p of polys) for (const r of p) for (const [x, y] of r) { const k = x.toFixed(4) + ',' + y.toFixed(4); if (!seen.has(k)) { seen.add(k); cnt.set(k, (cnt.get(k) || 0) + 1); } }
+  }
+  const pts = [...cnt].filter(([, n]) => n === 1).map(([k]) => k.split(',').map(Number));
+  const rad = Math.PI / 180;
+  return (lat, lng) => {
+    let m = Infinity;
+    for (const [x, y] of pts) {
+      if (Math.abs(y - lat) > 1 || Math.abs(x - lng) > 1.5) continue;
+      const s = Math.sin(((y - lat) * rad) / 2) ** 2 + Math.cos(lat * rad) * Math.cos(y * rad) * Math.sin(((x - lng) * rad) / 2) ** 2;
+      m = Math.min(m, 12742 * Math.asin(Math.sqrt(s)));
+    }
+    return m;
+  };
+}
+
 async function buildMap(validIso3) {
   const ne = await readJSON(`${RAW}/naturalearth/ne_50m_admin_0_countries.geojson`);
   const W = 1000; const s = W / (2 * equalEarth(180, 0)[0]);
@@ -81,6 +119,7 @@ async function buildMap(validIso3) {
   for (const f of ne.features) {
     const p = f.properties; let iso = p.ISO_A3_EH !== '-99' ? p.ISO_A3_EH : p.ADM0_A3; iso = NE_FIX[iso] || NE_FIX[p.ADM0_A3] || iso;
     if (iso === 'ATA' || iso === 'ATF') continue;
+    if (!/^[A-Z]{3}$/.test(iso)) { log('map: skipping shape with unexpected code', JSON.stringify(iso)); continue; } // codes become HTML attributes
     const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
     const rings = [];
     for (const poly of polys) for (const ring of poly) {
@@ -91,7 +130,9 @@ async function buildMap(validIso3) {
     shapes.push({ iso, name: p.NAME, rings });
   }
   const pad = 2; const ty = -minY + pad; const H = Math.ceil(maxY - minY + pad * 2);
-  const paths = {}; const centroids = {}; const dots = {};
+  // dots: countries drawn only as a dot. A country with several shapes (Australia also has Christmas Island and the Ashmore
+  // and Cartier Islands under the same code) counts as a dot only if none of its shapes is big enough to draw.
+  const paths = {}; const centroids = {}; const dots = {}; const drawn = new Set();
   for (const sh of shapes) {
     const simp = sh.rings.map((r) => simplify(r.map(([x, y]) => [x, y + ty]), 0.45)).filter((r) => r.length >= 4);
     const areas = simp.map(ringArea); const maxA = Math.max(...areas, 0);
@@ -112,7 +153,7 @@ async function buildMap(validIso3) {
       d = `M${round(cx - r, 1)} ${round(cy, 1)}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 -${2 * r} 0z`;
       (dots[sh.iso] = true);
       if (!centroids[sh.iso]) centroids[sh.iso] = [round(cx, 1), round(cy, 1), 0];
-    }
+    } else drawn.add(sh.iso);
     paths[sh.iso] = (paths[sh.iso] || '') + d;
     const big = simp[areas.indexOf(maxA)];
     if (big && (!centroids[sh.iso] || maxA > centroids[sh.iso][2])) {
@@ -123,7 +164,7 @@ async function buildMap(validIso3) {
   for (const k of Object.keys(centroids)) centroids[k] = centroids[k].slice(0, 2);
   const missing = [...validIso3].filter((c) => !paths[c]);
   if (missing.length) log('map: no shape for', missing.join(','));
-  return { w: W, h: H, proj: { name: 'Equal Earth', scale: round(s, 5), tx: W / 2, ty: round(ty, 4) }, paths, centroids, dots: Object.keys(dots) };
+  return { w: W, h: H, proj: { name: 'Equal Earth', scale: round(s, 5), tx: W / 2, ty: round(ty, 4) }, paths, centroids, dots: Object.keys(dots).filter((k) => !drawn.has(k)) };
 }
 
 async function main() {
@@ -172,12 +213,17 @@ async function main() {
   // ---------- Wikidata ----------
   const wd = async (k) => (await readJSON(`${RAW}/wikidata/${k}.json`)).results.bindings;
   const plugs = new Map(), volts = new Map(), drive = new Map();
-  for (const b of await wd('plugs')) {
+  const plugRows = await wd('plugs');
+  const hasBS546 = new Set(plugRows.filter((b) => b.plugLabel.value === 'BS 546').map((b) => b.iso.value));
+  for (const b of plugRows) {
     const iso = b.iso.value; const lab = b.plugLabel.value;
-    const t = PLUG[lab] || (/British/.test(lab) ? 'G' : null); if (!t) continue;
+    const t = PLUG[lab] || (BRITISH_RELATED.test(lab) && hasBS546.has(iso) ? 'M' : null); if (!t) continue;
     if (!plugs.has(iso)) plugs.set(iso, new Set()); plugs.get(iso).add(t);
   }
-  for (const b of await wd('voltage')) { const iso = b.iso.value; if (!volts.has(iso)) volts.set(iso, new Set()); volts.get(iso).add(Math.round(+b.v.value)); }
+  for (const [iso, extra] of Object.entries(PLUG_EXTRA)) { if (!plugs.has(iso)) plugs.set(iso, new Set()); for (const t of extra) plugs.get(iso).add(t); }
+  // Household (single-phase) mains only: drop three-phase / industrial values such as 400 V.
+  for (const b of await wd('voltage')) { const iso = b.iso.value; const v = Math.round(+b.v.value); if (v < 100 || v > 260) continue; if (!volts.has(iso)) volts.set(iso, new Set()); volts.get(iso).add(v); }
+  for (const [iso, v] of Object.entries(VOLT_OVERRIDES)) volts.set(iso, new Set(v));
   for (const b of await wd('driving')) { const side = b.sideLabel.value; if (side === 'left' || side === 'right') { if (!drive.has(b.iso.value)) drive.set(b.iso.value, new Set()); drive.get(b.iso.value).add(side); } }
 
   // ---------- M-Lab ----------
@@ -207,7 +253,8 @@ async function main() {
     }
     const plr = v / fx.get(y0);
     if (!Number.isFinite(plr) || plr < 0.08 || y0 < 2019) return null;
-    if (plr > 1.6 && income !== 'High income') return null;
+    // A non-high-income economy priced above the US is almost always a PPP/exchange-rate artefact (e.g. Haiti, Vanuatu).
+    if (plr > (income === 'High income' ? 1.6 : 1.0)) return null;
     return { v: plr, y: y0, extrapolated };
   };
   const countries = [];
@@ -217,7 +264,7 @@ async function main() {
     if (!g) { log('WARNING: no GeoNames info for', iso3); continue; }
     const name = NAME_OVERRIDES[iso3] || g.name;
     const ind = {};
-    for (const key of Object.values(WDI)) { if (key === 'pppPrivate' || key === 'fx' || key === 'deflator') continue; const l = latest(wdi[key], iso3); if (l) ind[key] = [round(l.v, l.v > 1000 ? 0 : 2), l.y]; }
+    for (const key of Object.values(WDI)) { if (key === 'pppPrivate' || key === 'fx' || key === 'deflator') continue; const l = latest(wdi[key], iso3); if (l && !(key === 'mobileSubs' && l.v > 400)) ind[key] = [round(l.v, l.v > 1000 ? 0 : 2), l.y]; }
     const gov = {};
     for (const key of Object.values(WGI)) { const l = latest(wgi[key], iso3); if (l) gov[key] = [round(l.v, 1), l.y]; }
     // Price levels: latest private-consumption price level ratio (US = 1), plus ICP 2021 category structure.
@@ -225,7 +272,7 @@ async function main() {
     // (each category's price level relative to the country's overall consumption price level).
     const plr = plrOf(iso3, w?.incomeLevel?.value);
     let pli = null, pliMethod = null;
-    const hasIcp = icp.aic.has(iso3) && !PRICE_BLACKLIST.has(iso3);
+    const hasIcp = icp.aic.has(iso3) && !PRICE_BLACKLIST.has(iso3) && !ICP_STRUCTURE_UNRELIABLE.has(iso3);
     if (hasIcp) {
       const aicRatio = icp.aic.get(iso3) / usIcp.aic;
       const level = plr ? plr.v : aicRatio;
@@ -241,8 +288,8 @@ async function main() {
       iso3, iso2: g.iso2, name, aka: AKA[iso3] || null, slug: SLUG_OVERRIDES[iso3] || slugify(name),
       region: w ? REGION_NAMES[w.region.id] || w.region.value : (iso3 === 'TWN' ? 'East Asia & Pacific' : 'Europe & Central Asia'),
       income: w?.incomeLevel?.value || null, continent: g.continent,
-      capital: g.capital || null, capLat: w?.latitude ? +w.latitude : null, capLng: w?.longitude ? +w.longitude : null,
-      area: g.area, currency: CURRENCY_OVERRIDES[iso3]?.[0] || g.currency || null, currencyName: CURRENCY_OVERRIDES[iso3]?.[1] || g.currencyName || null, phone: g.phone ? '+' + g.phone.replace(/^\+/, '') : null,
+      capital: CAPITAL_OVERRIDES[iso3] || g.capital || null, capLat: w?.latitude ? +w.latitude : null, capLng: w?.longitude ? +w.longitude : null,
+      area: g.area, currency: CURRENCY_OVERRIDES[iso3]?.[0] || g.currency || null, currencyName: CURRENCY_OVERRIDES[iso3]?.[1] || g.currencyName || null, phone: g.phone ? '+' + g.phone.split(/ and |,/)[0].trim().replace(/^\+/, '') : null,
       neighbours: g.neighboursIso2.map((c) => iso2to3.get(c)).filter((c) => c && pIndex.has(c)),
       plr: plr ? [round(plr.v, 3), plr.y, plr.extrapolated] : null, pli, pliMethod, pliYear: plr ? plr.y : pli ? 2021 : null,
       fx: fx ? [round(fx.v, 4), fx.y] : null,
@@ -262,6 +309,7 @@ async function main() {
   const resolved = await readJSON(`${RAW}/cities-resolved.json`);
   const wanted = new Set(CITY_LIST.map(([n, cc]) => n + '|' + cc));
   const byIso3 = new Map(countries.map((c) => [c.iso3, c]));
+  const coastKm = await coastFinder();
   const cities = [];
   for (const c of resolved) {
     if (!wanted.has(c.name + '|' + c.cc)) continue;
@@ -271,9 +319,15 @@ async function main() {
     if (!(await exists(nf))) { log('WARNING: no climate for', c.name); continue; }
     const nasa = await readJSON(nf); const P = nasa.properties.parameter;
     const gridElev = nasa.geometry.coordinates[2];
-    const elev = c.elevation;
+    const elev = c.elevation != null && c.elevation > -500 ? c.elevation : null; // GeoNames -9999 = no data
+    // Lapse-rate adjustment from the ~50 km grid cell's mean height to the city's height: 6.5 °C/km, at most 14 °C either way.
+    // The cap is wide enough for valley cities under high mountains (Pokhara sits about 2,000 m below its cell, which takes
+    // in the Annapurna range; an 8 °C cap left it colder than Kathmandu, 300 m higher) but still stops runaway values.
+    // Coastal cities (within 30 km of the sea) that sit below their cell are warmed by half that rate, at most 3 °C: sea air
+    // and inversions keep them cooler than the free-air lapse rate implies (Lima, Batumi, Puerto Vallarta).
+    const coastal = coastKm(c.lat, c.lng) <= 30;
     let dT = elev != null && gridElev != null ? -0.0065 * (elev - gridElev) : 0;
-    dT = Math.max(-8, Math.min(8, dT));
+    dT = dT > 0 && coastal ? Math.min(3, dT / 2) : Math.max(-14, Math.min(14, dT));
     const arr = (k, f = (v) => v) => MONTHS.map((mm, i) => { const v = P[k]?.[mm]; return v == null || v <= -998 ? null : round(f(v, i), 1); });
     const df = `${RAW}/nasa-daily/${c.geonameid}.json`;
     const daily = (await exists(df)) ? await readJSON(df) : null;
@@ -286,12 +340,14 @@ async function main() {
         wetDays: daily ? daily.months.map((x) => x?.wetDays ?? null) : null,
         rain: arr('PRECTOTCORR', (v, i) => v * DAYS_IN_MONTH[i]), rh: arr('RH2M'), cloud: arr('CLOUD_AMT'), sun: arr('ALLSKY_SFC_SW_DWN'),
       },
-      climAdj: round(dT, 2), gridElev: round(gridElev, 0), tempSource: daily ? 'daily-2015-2024' : 'climatology',
+      climAdj: round(dT, 2), coastal, gridElev: round(gridElev, 0), tempSource: daily && daily.months.every(Boolean) ? 'daily-2015-2024' : 'climatology',
     });
   }
   // slugs
   const counts = {}; for (const c of cities) { const s = slugify(c.name); counts[s] = (counts[s] || 0) + 1; }
   for (const c of cities) { const s = slugify(c.name); c.slug = counts[s] > 1 ? s + '-' + byIso3.get(c.iso3).slug : s; }
+  const dupSlugs = cities.map((c) => c.slug).filter((s, i, a) => a.indexOf(s) !== i);
+  if (dupSlugs.length) throw new Error('Two cities would share a page (same name in one country): ' + [...new Set(dupSlugs)].join(', ') + '. Give one of them a distinct name in cities.list.mjs.');
   await writeJSON(`${OUT}/cities.json`, cities);
   log('cities', cities.length);
 
@@ -330,7 +386,8 @@ async function main() {
   }
   const pick = (haul, cls, rf) => factors[[haul, cls, rf].join(' | ')] ?? null;
   const emissions = {
-    year: 2026, unit: 'kg CO2e per passenger-km', distanceUplift: 0.08, shortHaulMaxKm: 3700,
+    // distanceUplift is 0 because DESNZ factors already include the 8% great-circle uplift (methodology paper para 8.39).
+    year: 2026, unit: 'kg CO2e per passenger-km', distanceUplift: 0, shortHaulMaxKm: 3700,
     domestic: { avg: { rf: pick('Domestic, to/from UK', 'Average passenger', 'With RF'), noRf: pick('Domestic, to/from UK', 'Average passenger', 'Without RF') } },
     shortHaul: { economy: { rf: pick('Short-haul, to/from UK', 'Economy class', 'With RF'), noRf: pick('Short-haul, to/from UK', 'Economy class', 'Without RF') }, business: { rf: pick('Short-haul, to/from UK', 'Business class', 'With RF'), noRf: pick('Short-haul, to/from UK', 'Business class', 'Without RF') } },
     longHaul: { economy: { rf: pick('Long-haul, to/from UK', 'Economy class', 'With RF'), noRf: pick('Long-haul, to/from UK', 'Economy class', 'Without RF') }, premium: { rf: pick('Long-haul, to/from UK', 'Premium economy class', 'With RF'), noRf: pick('Long-haul, to/from UK', 'Premium economy class', 'Without RF') }, business: { rf: pick('Long-haul, to/from UK', 'Business class', 'With RF'), noRf: pick('Long-haul, to/from UK', 'Business class', 'Without RF') }, first: { rf: pick('Long-haul, to/from UK', 'First class', 'With RF'), noRf: pick('Long-haul, to/from UK', 'First class', 'Without RF') } },
@@ -347,8 +404,8 @@ async function main() {
       icp: '2021 benchmark, carried forward to the latest year with each country’s private-consumption price level',
       wgi: String(Math.max(...countries.flatMap((c) => Object.values(c.gov).map((x) => x[1])))),
       passport: passportUpdated, ecb: date, nasa: 'temperatures from daily data 2015 to 2024; rain, humidity and cloud from the 2001 to 2025 climatology',
-      mlab: 'January to March 2024', desnz: '2026 conversion factors (revised July 2026)', geonames: 'cities1000 + countryInfo, retrieved ' + new Date().toISOString().slice(0, 10),
-      wikidata: 'retrieved ' + new Date().toISOString().slice(0, 10), naturalearth: '1:50m Admin 0, version 5',
+      mlab: 'January to March 2024', desnz: '2026 conversion factors (revised July 2026)', geonames: 'cities1000 + countryInfo, retrieved ' + (await fetchedOn(`${RAW}/geonames`)),
+      wikidata: 'retrieved ' + (await fetchedOn(`${RAW}/wikidata`)), naturalearth: '1:50m Admin 0, version 5',
     },
     sources: SOURCES,
   }, true);

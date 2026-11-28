@@ -17,8 +17,11 @@ export function visaForm(ctx, s, { fixed = false } = {}) {
   </form>`;
 }
 
+/** The chosen passports, once each (picking the same passport twice counts as one). */
+const passportsOf = (s) => [...new Set([s.p1, s.p2].filter(Boolean))];
+
 export function visaRows(ctx, s) {
-  const pp = [s.p1, s.p2].filter(Boolean);
+  const pp = passportsOf(s);
   const v = ctx.db.visa;
   return ctx.db.countries.filter((c) => v.has(c.iso3) && !pp.includes(c.iso3)).map((c) => ({ c, v: v.best(pp, c.iso3) })).filter((r) => r.v);
 }
@@ -26,7 +29,7 @@ export function visaRows(ctx, s) {
 const easy = (s) => s === 'free' || s === 'voa' || s === 'eta';
 
 export function visaSummary(ctx, s) {
-  const pp = [s.p1, s.p2].filter(Boolean);
+  const pp = passportsOf(s);
   const n = ctx.db.visa.counts(pp);
   return html`<div class="vsum">
     <div class="vsum__big"><span class="vsum__n">${n.easy}</span><span class="vsum__l">destinations without applying for a visa in advance</span></div>
@@ -35,7 +38,7 @@ export function visaSummary(ctx, s) {
 }
 
 export function visaResults(ctx, s) {
-  const pp = [s.p1, s.p2].filter(Boolean);
+  const pp = passportsOf(s);
   if (!pp.length) {
     const open = ctx.db.countries.filter((c) => ctx.db.visa.has(c.iso3)).map((c) => ({ c, n: ctx.db.visa.openness(c.iso3) })).sort((a, b) => b.n - a.n).slice(0, 24);
     return html`<div class="empty"><p><b>Choose a passport</b> to see every destination it opens. Until then, here are the destinations that let the most passports in without a visa in advance.</p></div>

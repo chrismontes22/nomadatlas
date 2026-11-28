@@ -2,6 +2,7 @@ import { matchDefaults, toQuery, matchFilter, matchResults } from '../../render/
 import { rankCities } from '../../shared/scores.mjs';
 import { readForm, writeForm, syncUrl, urlState, store, debounce, copyText } from '../ctx.mjs';
 import { refresh } from './helpers.mjs';
+import { cityLabel } from '../../render/components.mjs';
 
 export function mount(el, ctx) {
   const form = el.querySelector('form'), out = el.querySelector('[data-results]');
@@ -9,7 +10,9 @@ export function mount(el, ctx) {
   let limit = 12;
   const initial = (ctx.mode === 'static' && urlState()) || store.get('na-match');
   if (initial) writeForm(form, initial);
-  else { form.elements.month.value = String(defaults.month); const p = store.get('na-passport'); if (p) form.elements.p1.value = p; }
+  else { const p = store.get('na-passport'); if (p) form.elements.p1.value = p; }
+  // The HTML was rendered for the build month. Unless a link or saved settings pick a month, show the current one (the default).
+  if (!(initial && 'month' in initial)) form.elements.month.value = String(defaults.month);
   const share = el.querySelector('[data-share]');
   if (ctx.mode !== 'static' && share) share.hidden = true;
   const outputs = () => { for (const w of form.querySelectorAll('.weight')) w.querySelector('output').textContent = w.querySelector('input').value; };
@@ -17,6 +20,9 @@ export function mount(el, ctx) {
     const s = readForm(form, defaults);
     const ranked = rankCities(ctx.db, toQuery(s, ctx), matchFilter(s));
     out.innerHTML = matchResults(ctx, ranked, s, { limit }).s;
+    // The hero globe on the home page shows the top matches and turns to face the best one.
+    window.__naMatches = ranked.slice(0, 8).map((r, i) => ({ lat: r.city.lat, lng: r.city.lng, label: i ? cityLabel(r.city) : cityLabel(r.city) + ' · ' + r.total }));
+    document.dispatchEvent(new CustomEvent('na:matches', { detail: window.__naMatches }));
     refresh(out); outputs();
     syncUrl(ctx, s, defaults);
     store.set('na-match', Object.fromEntries(Object.entries(s).filter(([k, v]) => String(v) !== String(defaults[k]))));

@@ -7,7 +7,9 @@ export const navigate = (ctx, path) => { if (ctx.navigate) ctx.navigate(path); e
 export function simpleTool(el, ctx, { key, defaults, render, onState }) {
   const form = el.querySelector('form'), out = el.querySelector('[data-results]');
   if (!form || !out) return;
-  const initial = (ctx.mode === 'static' && urlState()) || store.get(key);
+  let initial = (ctx.mode === 'static' && urlState()) || store.get(key);
+  // The HTML was rendered for the build month. Unless a link or saved settings pick a month, show the current one (the default).
+  if ('month' in defaults && form.elements.month && !(initial && 'month' in initial) && form.elements.month.value !== String(defaults.month)) initial = { ...initial, month: defaults.month };
   if (initial) writeForm(form, initial);
   const run = () => {
     const s = readForm(form, defaults);

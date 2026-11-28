@@ -2,7 +2,7 @@ import { html } from '../html.mjs';
 import { fmtMoney, fmtNum } from '../../shared/format.mjs';
 import { CATEGORIES, LIFESTYLES, HOUSING_BLEND, basketTotal } from '../../shared/cost.mjs';
 import { DEFAULT_CLIMATE } from '../../shared/climate.mjs';
-import { DEFAULT_WEIGHTS, FACTORS } from '../../shared/scores.mjs';
+import { DEFAULT_WEIGHTS, FACTORS, STATIC_QUERY } from '../../shared/scores.mjs';
 import { pageHead, toolGrid } from '../components.mjs';
 import { shell, crumbsLd } from './common.mjs';
 
@@ -11,20 +11,30 @@ const page = (ctx, path, name, title, description, inner, extraLd = []) => {
   return { path, title, description, body: shell(ctx, crumbs, inner), jsonld: [crumbsLd(ctx, crumbs), ...extraLd], priority: 0.5, changefreq: 'monthly' };
 };
 
+/** The years the price levels come from, e.g. "2025 for 167 of the 180 countries and 2020 to 2024 for the rest". */
+function priceYears(db) {
+  const ys = db.countries.map((c) => c.pliYear).filter(Boolean);
+  if (!ys.length) return 'recent years';
+  const max = Math.max(...ys), most = ys.filter((y) => y === max).length, rest = ys.filter((y) => y !== max);
+  if (!rest.length) return String(max);
+  const lo = Math.min(...rest), hi = Math.max(...rest);
+  return max + ' for ' + most + ' of the ' + ys.length + ' countries and ' + (lo === hi ? lo : lo + ' to ' + hi) + ' for the rest';
+}
+
 export function methodologyPage(ctx) {
   const m = ctx.db.meta;
   return page(ctx, '/methodology/', 'Methodology', 'Methodology: How NomadAtlas Scores Cities | NomadAtlas', 'How NomadAtlas scores cost of living, weather, internet, safety, healthcare, air quality, visas and time-zone fit: formulas, assumptions and limits.', html`
   ${pageHead({ eyebrow: 'Methodology', title: 'How we calculate', lede: 'Every score on NomadAtlas is a transparent formula over open data. This page lists each one, the assumptions behind it and where it falls short.' })}
   <div class="prose">
   <h2>The match score</h2>
-  <p>Each city gets a 0 to 100 score on eight factors. The match score is the weighted average of the factors you give a weight above zero, using the priority sliders in the destination finder (defaults: ${FACTORS.map((f) => f.label.toLowerCase() + ' ' + DEFAULT_WEIGHTS[f.key]).join(', ')}). Visa ease only counts once you choose a passport and time-zone fit only once you choose a team time zone. Destinations that refuse entry to all your passports are left out.</p>
-  <p>City pages and indexes show a <b>NomadAtlas score</b> that uses fixed inputs so cities can be compared without personal details: a comfortable lifestyle against a $3,000 monthly budget, the year-round weather average and the default weights for cost (3), weather (2), internet (2), safety (2), healthcare (1) and air quality (1).</p>
+  <p>Each city gets a 0 to 100 score on eight factors. The match score is the weighted average of the factors you give a weight above zero, using the priority sliders in the destination finder (defaults: ${FACTORS.map((f) => f.label.toLowerCase() + ' ' + DEFAULT_WEIGHTS[f.key]).join(', ')}). Visa ease only counts once you choose a passport and time-zone fit only once you choose a team time zone. Destinations that refuse entry to all your passports are left out. A factor with no data for a country is left out of that city’s average rather than guessed, so a few cities are scored on fewer factors; their city pages say which (Taiwan, for example, has no World Bank safety, healthcare or air-quality data).</p>
+  <p>City pages and indexes show a <b>NomadAtlas score</b> that uses fixed inputs so cities can be compared without personal details: a comfortable lifestyle against a $3,000 monthly budget, the year-round weather average and the same default weights as the destination finder (${FACTORS.filter((f) => STATIC_QUERY.weights[f.key]).map((f) => f.label.toLowerCase() + ' ' + STATIC_QUERY.weights[f.key]).join(', ')}). Visa ease and time-zone fit are left out because they depend on your passport and team. Cities with equal scores are listed cheapest first.</p>
 
   <h2>Cost of living</h2>
   <p>We price a monthly basket at United States price levels and re-price each category with that country’s price level index (United States = 100).</p>
   <ul>
     <li><b>Category structure.</b> World Bank International Comparison Program (ICP) 2021 price level indices for ${CATEGORIES.filter((c) => !c.fixed).map((c) => c.label.toLowerCase()).join(', ')}, each divided by the country’s overall level for actual individual consumption.</li>
-    <li><b>Overall level.</b> The latest price level ratio for household consumption from the World Development Indicators: the PPP conversion factor for private consumption divided by the market exchange rate. Where PPPs lag behind exchange rates (for example Argentina), we carry the PPP forward with consumer-price inflation relative to the United States, which is the standard extrapolation method. We publish no estimate for economies whose official exchange rates do not reflect what visitors pay (such as Iran, Syria, Venezuela and Zimbabwe).</li>
+    <li><b>Overall level.</b> The latest price level ratio for household consumption from the World Development Indicators: the PPP conversion factor for private consumption divided by the market exchange rate. Where PPPs lag behind exchange rates (for example Argentina), we carry the PPP forward with consumer-price inflation relative to the United States, which is the standard extrapolation method (for a year in which a country’s consumer-price inflation is not yet published, we use its GDP deflator instead). We publish no estimate for economies whose official exchange rates do not reflect what visitors pay (such as Iran, Syria, Venezuela and Zimbabwe). Lebanon uses its overall level for every category, because its ICP 2021 category prices were distorted by multiple exchange rates.</li>
     <li><b>Rent.</b> Furnished short-term rentals in central areas track the overall price level more closely than national average rents, so rent uses ${Math.round(HOUSING_BLEND * 100)}% of the ICP housing level and ${Math.round((1 - HOUSING_BLEND) * 100)}% of the overall level.</li>
     <li><b>Insurance.</b> International health insurance is priced the same everywhere.</li>
   </ul>
@@ -32,12 +42,12 @@ export function methodologyPage(ctx) {
     <thead><tr><th scope="col">Category</th>${Object.values(LIFESTYLES).map((l) => html`<th scope="col" class="num">${l.label}</th>`)}</tr></thead>
     <tbody>${CATEGORIES.map((c) => html`<tr><th scope="row">${c.label}</th>${Object.values(LIFESTYLES).map((l) => html`<td class="num">${fmtMoney(l.basket[c.key])}</td>`)}</tr>`)}</tbody>
     <tfoot><tr><th scope="row">Total</th>${Object.values(LIFESTYLES).map((l) => html`<td class="num"><b>${fmtMoney(basketTotal(l.basket))}</b></td>`)}</tr></tfoot></table></div>
-  <p><b>Affordability score:</b> 100 when the estimate uses 65% of your budget or less, falling in a straight line to 0 at 130% of your budget.</p>
-  <p><b>Limitations.</b> Price levels are national averages. Central neighbourhoods in big hubs such as London, Paris or New York cost more than the national estimate and small towns less. Exchange rates move: the estimate reflects the year of the latest price data, currently ${m.vintages?.wdi || 'recent years'}.</p>
+  <p><b>Affordability score:</b> 100 when the estimate uses 65% of your budget or less, falling in a straight line to 0 at 130% of your budget. If you clear the budget field, cost is scored on a log scale instead, from $1,100 a month (100) to $6,000 (0).</p>
+  <p><b>Limitations.</b> Price levels are national averages. Central neighbourhoods in big hubs such as London, Paris or New York cost more than the national estimate and small towns less. Exchange rates move: the estimate reflects the year of the latest price data, currently ${priceYears(ctx.db)}.</p>
 
   <h2>Weather comfort</h2>
-  <p>Monthly averages from NASA POWER (MERRA-2 reanalysis, ${m.vintages?.nasa || '2001 to 2025'}) for mean, maximum and minimum temperature, precipitation and relative humidity. Each grid cell is roughly 50 by 60 km, so we adjust temperatures to the city’s elevation from GeoNames using a lapse rate of 6.5 °C per 1,000 m (at most 8 °C either way).</p>
-  <p>A month scores 100 when the average temperature is inside your preferred range (default ${DEFAULT_CLIMATE.tMin} to ${DEFAULT_CLIMATE.tMax} °C). It loses 8 points per degree below the range and 11 per degree above, up to 40 points as rainfall rises from 35% of your rain limit to twice it (default limit ${DEFAULT_CLIMATE.maxRain} mm), and up to 14 points when it is hotter than 22 °C with relative humidity above 65%. Best months are those scoring 75 or more.</p>
+  <p>Monthly averages from NASA POWER (MERRA-2 reanalysis, ${m.vintages?.nasa || '2001 to 2025'}) for mean, maximum and minimum temperature, precipitation and relative humidity. Each grid cell is roughly 50 by 60 km, so we adjust temperatures to the city’s elevation from GeoNames using a lapse rate of 6.5 °C per 1,000 m (at most 14 °C either way, for cities in steep mountain valleys such as Pokhara). Coastal cities (within 30 km of the sea) that sit below their grid cell are warmed by only half that rate, at most 3 °C, because sea air and temperature inversions keep them cooler than the standard rate implies. Cities without a reliable elevation are not adjusted.</p>
+  <p>A month scores 100 when the average temperature is inside your preferred range (default ${DEFAULT_CLIMATE.tMin} to ${DEFAULT_CLIMATE.tMax} °C). It loses 8 points per degree below the range and 11 per degree above, up to 40 points as rainfall rises from 35% of your rain limit to twice it (default limit ${DEFAULT_CLIMATE.maxRain} mm), and up to 14 points when it is hotter than 22 °C with relative humidity above 65%. Best months are those scoring 75 or more; where fewer than two months reach 75, the three highest-scoring months are shown instead.</p>
   <p><b>Limitations.</b> Coastal cities can read 1 to 3 °C milder than a station in town because the grid cell includes sea, and valleys with temperature inversions may differ from the lapse-rate adjustment.</p>
 
   <h2>Internet</h2>
@@ -54,13 +64,22 @@ export function methodologyPage(ctx) {
   <p>Mean annual exposure to PM2.5 (World Bank): 5 µg/m³, the World Health Organization guideline, scores 100, falling to 0 at 45 µg/m³. These are national population-weighted averages; individual cities can be cleaner or much worse.</p>
 
   <h2>Visa ease</h2>
-  <p>The best option across your passports from Passport Index Data (updated ${ctx.db.visa.updated}): visa-free stays of 90 days or more, unlimited stays or your own country score 100, visa-free stays of 30 to 89 days 88, shorter visa-free stays 75, visa on arrival 85, electronic travel authorisation 80, e-visa 50 and visa required 10.</p>
+  <p>The best option across your passports from Passport Index Data (updated ${ctx.db.visa.updated}): visa-free stays of 90 days or more, unlimited stays or your own country score 100, visa-free stays of 30 to 89 days 92, shorter visa-free stays 88, visa on arrival 85, electronic travel authorisation 80, e-visa 50 and visa required 10.</p>
 
   <h2>Time-zone fit</h2>
   <p>The hours your team’s working day overlaps with the window you are willing to work in the city’s local time, using IANA time zone rules for the 15th of the month you pick (so daylight saving is handled). Reaching the overlap you need scores 100; no overlap scores 0.</p>
 
   <h2>Flight emissions</h2>
-  <p>Great-circle distance plus an 8% uplift, multiplied by the UK government (DESNZ) conversion factor for short-haul (under 3,700 km) or long-haul flights and the chosen cabin class, with radiative forcing by default.</p>
+  <p>Great-circle distance multiplied by the UK government (DESNZ) conversion factor for short-haul (under ${fmtNum(ctx.db.emissions.shortHaulMaxKm)} km) or long-haul flights and the chosen cabin class, with radiative forcing by default. DESNZ factors already include the recommended 8% uplift for indirect routes and holding, so we do not add it again. DESNZ publishes no short-haul factors for premium economy or first class, so those use the economy and business class factors.</p>
+  <p>Flights within one country shorter than ${fmtNum(ctx.db.emissions.shortHaulMaxKm)} km use the DESNZ domestic factor, an average across cabin classes. That factor is based on short UK domestic flights, so longer domestic routes (New York to Los Angeles, for example) use the long-haul factors instead.</p>
+  <p>We use the DESNZ factors for flights to and from the UK on every route. DESNZ also publishes one set of factors for international flights that do not touch the UK; for economy it is 7 to 13% lower than the UK short-haul and long-haul factors, but it does not separate short-haul from long-haul flights.</p>
+
+  <h2>Pros, cons and trade-offs on city pages</h2>
+  <p>Each city guide opens with a short take worked out from the same data, always by comparing the city with every other city in the atlas. A badge appears only when a city stands out: for example <b>Budget-friendly</b> when a comfortable month costs less than in at least 80% of cities, <b>Fast internet</b> or <b>Slow internet</b> for the fastest 20% and slowest 15% of measured speeds, <b>Pleasant all year</b> when every month scores 75 or more for weather comfort, <b>Very hot</b> for months averaging 29 °C or more, <b>Wet season</b> for months with 200 mm of rain or more, and time-zone badges when a 9:00 to 17:00 team in New York, Berlin or Singapore overlaps by several hours with a working day between 08:00 and 20:00 in January. At most five badges show, and the strongest drawback always makes the list.</p>
+  <p>The trade-off sentence names the factor where the city beats the largest share of other cities and the one where it trails the most. “Similar weather for less” lists cities in other countries whose monthly temperatures and rainfall are closest, among those where a comfortable month costs at least 10% less.</p>
+
+  <h2>Nomad year planner</h2>
+  <p>The planner adds up the same monthly cost estimates as the city guides for each stop, takes one economy flight between consecutive stops with the method above, and counts a month as comfortable when its weather comfort score is 75 or more. It checks the Schengen 90/180 rule on every day of the plan, counting entry and exit days, and assumes no Schengen days were used in the six months before the plan starts. With a passport chosen it compares each stay with the visa-free length in the Passport Index Data matrix.</p>
 
   <h2>Updates</h2>
   <p>The site is a static build. Running the data pipeline downloads fresh copies of every source and rebuilds all pages. This build was generated on ${ctx.buildDate}.</p>
@@ -69,7 +88,7 @@ export function methodologyPage(ctx) {
 
 export function dataSourcesPage(ctx) {
   const m = ctx.db.meta;
-  const ld = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'NomadAtlas remote-work city and country indicators', description: 'Cost of living estimates, climate averages, internet speeds, governance and health indicators and visa requirements for 184 cities and 199 countries, compiled from openly licensed sources for comparing places to live and work remotely.', url: ctx.site.url + '/data-sources/', creator: { '@type': 'Organization', name: ctx.site.name }, license: 'https://creativecommons.org/licenses/by/4.0/', isAccessibleForFree: true, dateModified: ctx.buildDate, isBasedOn: m.sources.map((s) => s.url), keywords: ['digital nomad', 'cost of living', 'purchasing power parity', 'climate', 'internet speed', 'visa requirements'] };
+  const ld = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'NomadAtlas remote-work city and country indicators', description: 'Cost of living estimates, climate averages, internet speeds, governance and health indicators and visa requirements for ' + ctx.db.cities.length + ' cities and ' + ctx.db.countries.length + ' countries, compiled from openly licensed sources for comparing places to live and work remotely.', url: ctx.site.url + '/data-sources/', creator: { '@type': 'Organization', name: ctx.site.name, url: ctx.site.url }, license: 'https://creativecommons.org/licenses/by/4.0/', isAccessibleForFree: true, dateModified: ctx.buildDate, isBasedOn: m.sources.map((s) => s.url), keywords: ['digital nomad', 'cost of living', 'purchasing power parity', 'climate', 'internet speed', 'visa requirements'] };
   return page(ctx, '/data-sources/', 'Data sources', 'Data Sources & Licences | NomadAtlas', 'Every dataset behind NomadAtlas with its licence and attribution: World Bank, NASA POWER, M-Lab, GeoNames, Wikidata, Natural Earth and more.', html`
   ${pageHead({ eyebrow: 'Open data', title: 'Data sources and licences', lede: 'NomadAtlas uses only datasets that allow commercial reuse: public domain, CC0, MIT, CC BY 4.0 or attribution-only government licences. None of them are share-alike or non-commercial.' })}
   <div class="sources">${m.sources.map((s) => html`<article class="source" id="src-${s.id}">
@@ -98,7 +117,7 @@ export function privacyPage(ctx) {
   return page(ctx, '/privacy/', 'Privacy', 'Privacy | NomadAtlas', 'NomadAtlas has no accounts, no cookies and no tracking. Calculator inputs stay in your browser.', html`
   ${pageHead({ eyebrow: 'Privacy', title: 'Privacy', lede: 'Short version: no accounts, no cookies, no tracking.' })}
   <div class="prose">
-    <p>All calculators run in your browser. Inputs such as your Schengen stays or theme preference are saved in your browser’s local storage so they are there next time; they are never sent to us. Clear your browser’s site data to remove them.</p>
+    <p>All calculators run in your browser. Inputs such as your Schengen stays, your passport or your theme preference are saved in your browser’s local storage so they are there next time; they are never sent to us. Clear your browser’s site data to remove them.</p>
     <p>Fonts are loaded from Google Fonts, which receives your IP address when your browser requests them. Our hosting provider may keep standard server logs for security.</p>
   </div>`);
 }

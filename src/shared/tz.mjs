@@ -26,12 +26,20 @@ export function overlap(team, me, date) {
   if (oT == null || oM == null) return null;
   const [ts, te] = span(team.start, team.end).map((x) => x - oT);
   const [ms, me2] = span(me.start, me.end).map((x) => x - oM);
-  let total = 0; let first = null;
-  for (const k of [-1440, 0, 1440]) {
+  let total = 0; const blocks = [];
+  // Offsets differ by up to 26 h, so check the windows shifted by up to two days either way.
+  for (const k of [-2880, -1440, 0, 1440, 2880]) {
     const a = Math.max(ts, ms + k), b = Math.min(te, me2 + k);
-    if (b > a) { total += b - a; if (!first) first = [a + oM - k, b + oM - k]; }
+    if (b > a) { total += b - a; blocks.push([a + oM - k, b + oM - k]); }
   }
-  return { minutes: total, localStart: first ? first[0] : null, localEnd: first ? first[1] : null, diff: oM - oT };
+  // Blocks in your local time: each starts between 00:00 and 24:00 (it may end after midnight), sorted, touching blocks joined.
+  // localStart/localEnd describe the first block; an overnight window can overlap twice.
+  const out = [];
+  for (const [a, b] of blocks.map(([a, b]) => { const s = ((a % 1440) + 1440) % 1440; return [s, s + b - a]; }).sort((x, y) => x[0] - y[0])) {
+    const p = out[out.length - 1];
+    if (p && a <= p[1]) p[1] = Math.max(p[1], b); else out.push([a, b]);
+  }
+  return { minutes: total, localStart: out[0]?.[0] ?? null, localEnd: out[0]?.[1] ?? null, blocks: out, diff: oM - oT };
 }
 
 export const COMMON_ZONES = [

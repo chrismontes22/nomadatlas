@@ -1,4 +1,6 @@
 // Schengen short-stay rule: at most 90 days in any rolling 180-day period. Entry and exit days both count.
+/** EU members outside Schengen: their citizens still have EU freedom of movement in the Schengen Area. */
+export const EU_NON_SCHENGEN = ['IRL', 'CYP'];
 export const SCHENGEN = ['AUT', 'BEL', 'BGR', 'HRV', 'CZE', 'DNK', 'EST', 'FIN', 'FRA', 'DEU', 'GRC', 'HUN', 'ISL', 'ITA', 'LVA', 'LIE', 'LTU', 'LUX', 'MLT', 'NLD', 'NOR', 'POL', 'PRT', 'ROU', 'SVK', 'SVN', 'ESP', 'SWE', 'CHE'];
 const DAY = 86400000;
 export const toDay = (s) => { const t = Date.parse(String(s) + 'T00:00:00Z'); return Number.isFinite(t) ? Math.floor(t / DAY) : NaN; };
@@ -38,10 +40,9 @@ export function analyze(trips, checkISO) {
   const used = usedOn(days, cd);
   const sorted = [...days].sort((a, b) => a - b);
   const overstays = sorted.filter((d) => usedOn(days, d) > 90);
-  // first date on/after check when a full 90 days is available again
-  let resetDay = null;
-  for (let d = cd; d < cd + 400; d++) { if (usedOn(days, d) === 0 && !days.has(d)) { resetDay = d; break; } }
+  // The window is completely clear 180 days after the last counted day, including stays planned after the check date.
+  const resetDay = sorted.length ? sorted[sorted.length - 1] + 180 : null;
   const series = [];
   for (let d = cd - 179; d <= cd + 180; d++) series.push({ d, used: usedOn(days, d), present: days.has(d) });
-  return { used, remaining: Math.max(0, 90 - used), overstays: overstays.map(fromDay), firstOverstay: overstays.length ? fromDay(overstays[0]) : null, resetDate: resetDay ? fromDay(resetDay) : null, series, checkDay: cd, totalDays: days.size };
+  return { used, remaining: Math.max(0, 90 - used), overstays: overstays.map(fromDay), firstOverstay: overstays.length ? fromDay(overstays[0]) : null, resetDate: resetDay != null ? fromDay(resetDay) : null, clearBy: resetDay != null && resetDay <= cd, series, checkDay: cd, totalDays: days.size };
 }

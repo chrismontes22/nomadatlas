@@ -1,11 +1,12 @@
 import { loadMap } from './ctx.mjs';
 import { project } from '../shared/geo.mjs';
+import { esc } from '../render/html.mjs';
 
 /** Draws the Natural Earth world map into a container. Returns helpers to recolour shapes or place dots. */
 export async function drawMap(container, { names = {}, onClick, tooltip } = {}) {
   const map = await loadMap();
-  const paths = Object.entries(map.paths).map(([iso, d]) => '<path data-iso="' + iso + '" d="' + d + '"></path>').join('');
-  container.innerHTML = '<svg viewBox="0 0 ' + map.w + ' ' + map.h + '" preserveAspectRatio="xMidYMid meet" role="presentation"><g class="shapes">' + paths + '</g><g class="dots"></g></svg><div class="maptip" hidden></div>';
+  const paths = Object.entries(map.paths).map(([iso, d]) => '<path data-iso="' + esc(iso) + '" d="' + esc(d) + '"></path>').join('');
+  container.innerHTML = '<svg viewBox="0 0 ' + +map.w + ' ' + +map.h + '" preserveAspectRatio="xMidYMid meet" role="presentation"><g class="shapes">' + paths + '</g><g class="dots"></g></svg><div class="maptip" hidden></div>';
   const svg = container.querySelector('svg'); const tip = container.querySelector('.maptip');
   const move = (e, text) => {
     if (!text) { tip.hidden = true; return; }
@@ -21,6 +22,6 @@ export async function drawMap(container, { names = {}, onClick, tooltip } = {}) 
   return {
     map, svg,
     color(fn) { for (const p of svg.querySelectorAll('path[data-iso]')) { p.setAttribute('class', fn(p.dataset.iso) || ''); } },
-    dots(list) { svg.querySelector('.dots').innerHTML = list.map((d) => { const [x, y] = project(map.proj, d.lat, d.lng); return '<circle class="dot ' + (d.cls || '') + '" data-city="' + d.id + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (d.r || 3.6) + '"></circle>'; }).join(''); },
+    dots(list) { svg.querySelector('.dots').innerHTML = list.map((d) => { const [x, y] = project(map.proj, d.lat, d.lng); return '<circle class="dot ' + esc(d.cls || '') + '" data-city="' + esc(d.id) + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (+d.r || 3.6) + '"></circle>'; }).join(''); },
   };
 }

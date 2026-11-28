@@ -1,5 +1,5 @@
 {
-  "built": "2026-11-25",
+  "built": "2026-11-27",
   "vintages": {
     "wdi": "2012 to 2025 (latest available year per country)",
     "icp": "2021 benchmark, carried forward to the latest year with each country’s private-consumption price level",
@@ -10,7 +10,7 @@
     "mlab": "January to March 2024",
     "desnz": "2026 conversion factors (revised July 2026)",
     "geonames": "cities1000 + countryInfo, retrieved 2026-11-25",
-    "wikidata": "retrieved 2026-11-25",
+    "wikidata": "retrieved 2026-11-26",
     "naturalearth": "1:50m Admin 0, version 5"
   },
   "sources": [
@@ -66,7 +66,7 @@
     },
     {
       "id": "nasa",
-      "name": "NASA POWER climatology (MERRA-2, 2001 to 2025)",
+      "name": "NASA POWER (MERRA-2 daily data and climatology)",
       "publisher": "NASA Langley Research Center",
       "license": "Public, free and open (NASA Earth science data policy)",
       "licenseUrl": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance",

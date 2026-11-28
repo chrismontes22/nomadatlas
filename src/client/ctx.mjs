@@ -10,9 +10,9 @@ export function getCtx() {
     const db = createDb({ ...core, visa });
     const now = new Date();
     return { db, site: { url: location.origin, name: 'NomadAtlas' }, mode: 'static', link: (p) => p, year: now.getFullYear(), buildMonth: now.getMonth(), buildDate: now.toISOString().slice(0, 10) };
-  })());
+  })().catch((e) => { ctxPromise = null; throw e; }));
 }
-export const loadMap = () => (mapPromise ||= fetchJSON(base() + 'data/map.json?v=' + V));
+export const loadMap = () => (mapPromise ||= fetchJSON(base() + 'data/map.json?v=' + V).catch((e) => { mapPromise = null; throw e; }));
 export const store = {
   get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch { return null; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } },

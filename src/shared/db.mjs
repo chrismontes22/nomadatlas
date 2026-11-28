@@ -19,7 +19,7 @@ export function createDb({ countries, cities, visa, rates, emissions, meta, map 
     ci.costComfort = ci.country.costComfort; ci.costLean = ci.country.costLean;
     ci.yearComfort = yearComfort(ci.clim); ci.best = bestMonths(ci.clim);
   }
-  const ranked = [...cities].sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+  const ranked = [...cities].sort((a, b) => (b.score ?? -1) - (a.score ?? -1) || (a.costComfort ?? 1e9) - (b.costComfort ?? 1e9) || a.name.localeCompare(b.name));
   ranked.forEach((c, i) => { c.rank = i + 1; });
   for (const c of countries) c.cities.sort((a, b) => b.pop - a.pop);
   db.citiesRanked = ranked;

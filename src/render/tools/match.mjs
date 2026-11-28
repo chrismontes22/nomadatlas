@@ -3,6 +3,7 @@ import { MONTHS, fmtMoney, fmtTemp, fmtNum, fmtHours, fmtClock, fmtOffset, fmtCo
 import { LIFESTYLES, CURRENCIES, toCur } from '../../shared/cost.mjs';
 import { FACTORS, DEFAULT_WEIGHTS } from '../../shared/scores.mjs';
 import { DEFAULT_CLIMATE, describe } from '../../shared/climate.mjs';
+import { weatherPrefs } from './weather.mjs';
 import { COMMON_ZONES } from '../../shared/tz.mjs';
 import { stayLabel } from '../../shared/visa.mjs';
 import { scoreChip, factorBars, visaPill, cityPath, cityLabel } from '../components.mjs';
@@ -21,7 +22,7 @@ export function toQuery(s, ctx) {
   const rate = rates.rates[s.cur] ?? 1;
   return {
     month: +s.month < 0 ? null : +s.month,
-    climate: { tMin: +s.tmin, tMax: +s.tmax, maxRain: +s.rain },
+    climate: weatherPrefs(s),
     budgetUsd: (+s.budget || 0) / rate,
     basket: (LIFESTYLES[s.life] || LIFESTYLES.comfortable).basket,
     passports: [s.p1, s.p2].filter(Boolean),
@@ -46,7 +47,7 @@ export function matchForm(ctx, s) {
   <div class="finder__main">
     <div class="field">
       <label for="m-budget">Monthly budget</label>
-      <div class="inputgroup"><input id="m-budget" name="budget" type="number" inputmode="numeric" min="200" max="100000" step="50" value="${s.budget}"><select id="m-cur" name="cur" aria-label="Currency">${CURRENCIES.map((c) => html`<option${sel(c, s.cur)}>${c}</option>`)}</select></div>
+      <div class="inputgroup"><input id="m-budget" name="budget" type="number" inputmode="numeric" min="0" step="any" value="${s.budget}"><select id="m-cur" name="cur" aria-label="Currency">${CURRENCIES.map((c) => html`<option${sel(c, s.cur)}>${c}</option>`)}</select></div>
     </div>
     <fieldset class="field seg">
       <legend>Lifestyle</legend>
@@ -115,10 +116,13 @@ export function matchResults(ctx, ranked, s, { limit = 12 } = {}) {
   const m = +s.month;
   const temp = (r) => (m >= 0 ? fmtTemp(r.city.clim.t[m]) + ' · ' + describe(r.city.clim, m) : 'Year-round comfort ' + r.parts.climate);
   const life = (LIFESTYLES[s.life] || LIFESTYLES.comfortable).label.toLowerCase();
-  const summary = html`<p class="results__summary"><b>${ranked.length}</b> of ${ctx.db.cities.length} cities match · ranked for <b>${m >= 0 ? MONTHS[m] : 'the whole year'}</b> on a <b>${fmtMoney(+s.budget, cur, 0)}</b> ${life} budget${s.p1 ? html` · visas for <b>${[s.p1, s.p2].filter(Boolean).map((p) => ctx.db.byIso3.get(p)?.name).join(' + ')}</b> passport${s.p2 ? 's' : ''}` : ''}</p>`;
+  const summary = html`<p class="results__summary"><b>${ranked.length}</b> of ${ctx.db.cities.length} cities match · ranked for <b>${m >= 0 ? MONTHS[m] : 'the whole year'}</b> ${+s.budget > 0 ? html` on a <b>${fmtMoney(+s.budget, cur, 0)}</b> ${life} budget` : html` for a ${life} lifestyle, with no budget set`}${s.p1 || s.p2 ? html` · visas for <b>${[s.p1, s.p2].filter(Boolean).map((p) => ctx.db.byIso3.get(p)?.name).join(' + ')}</b> passport${s.p2 ? 's' : ''}` : ''}</p>`;
+  const w = toQuery(s, ctx).weights;
+  const counted = FACTORS.some((f) => w[f.key] > 0 && (f.key !== 'visa' || s.p1 || s.p2) && (f.key !== 'timezone' || s.tz));
+  if (!counted) return html`${summary}<div class="empty"><p><b>Nothing to rank on.</b> Under “What matters to you”, give at least one factor a weight above 0. Visa ease and time-zone fit only count once you pick a passport or a team time zone.</p></div>`;
   if (!ranked.length) return html`${summary}<div class="empty"><p><b>No cities match these filters.</b> Widen the region or allow destinations that need a visa in advance.</p></div>`;
   const [first, ...rest] = ranked;
-  const overlapTxt = (r) => (r.overlap ? fmtHours(r.overlap.minutes) + ' overlap' + (r.overlap.minutes ? ' (' + fmtClock(r.overlap.localStart) + '–' + fmtClock(r.overlap.localEnd) + ' local)' : '') : null);
+  const overlapTxt = (r) => (r.overlap ? fmtHours(r.overlap.minutes) + ' overlap' + (r.overlap.minutes ? ' (' + r.overlap.blocks.map(([a, b]) => fmtClock(a) + '–' + fmtClock(b)).join(' and ') + ' local)' : '') : null);
   const facts = (r) => [
     html`<span class="fact"><span class="fact__k">Cost</span><span>≈ ${money(r.costUsd)}<small>/mo</small></span></span>`,
     html`<span class="fact"><span class="fact__k">Weather</span><span>${temp(r)}</span></span>`,

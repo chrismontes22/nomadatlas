@@ -10,6 +10,7 @@ export function html(strings, ...vals) {
   return new Raw(out);
 }
 export const str = (v) => r(v);
-// JSON-LD: escape "</" so a value can never close the script element ("\/" is a valid JSON escape).
-export const jsonLd = (obj) => raw('<script type="application/ld+json">' + JSON.stringify(obj).replace(/<\//g, '<\\/') + '</script>');
+// JSON inside a <script> element: every "<" becomes \u003c (a valid JSON escape), so a value can never close the element.
+export const scriptJson = (obj) => JSON.stringify(obj).replace(/</g, '\\u003c');
+export const jsonLd = (obj) => raw('<script type="application/ld+json">' + scriptJson(obj) + '</script>');
 export const when = (cond, fn) => (cond ? fn() : '');

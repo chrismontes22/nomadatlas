@@ -3,3 +3,6 @@ dist/
 preview/
 data/raw/
 .DS_Store
+repomix-output.xml
+.env
+.env.*

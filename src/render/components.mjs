@@ -1,16 +1,32 @@
-import { html, raw, esc, jsonLd } from './html.mjs';
+import { html, raw, esc, jsonLd, scriptJson } from './html.mjs';
 import { fmtNum, fmtMoney, fmtTemp, fmtMm, MONTHS, MONTHS_SHORT, cToF, fmtPct } from '../shared/format.mjs';
 import { scoreClass, FACTORS } from '../shared/scores.mjs';
 import { describe, comfort } from '../shared/climate.mjs';
 import { STATUS, stayLabel } from '../shared/visa.mjs';
-import { TOOLS } from './nav.mjs';
+import { TOOLS, toolDesc } from './nav.mjs';
+import { iconTile } from './icons.mjs';
 
 export const cityLabel = (c) => (c.alias && c.alias !== c.country?.name ? c.name + ', ' + c.alias : c.name);
-export const cityFull = (c) => cityLabel(c) + ', ' + c.country.name;
+/** ", Country" to follow a city's name, or nothing for city-states such as Singapore and Hong Kong. */
+export const inCountry = (c) => (!c.country || c.name === c.country.name ? '' : ', ' + c.country.name);
+export const cityFull = (c) => cityLabel(c) + inCountry(c);
 export const cityPath = (c) => '/cities/' + c.slug + '/';
 export const countryPath = (c) => '/countries/' + c.slug + '/';
 export const passportPath = (c) => '/visa-free-countries/' + c.slug + '/';
 export const monthPath = (m) => '/where-to-go/' + MONTHS[m].toLowerCase() + '/';
+
+/* Map images (SVG files written by scripts/build.mjs from each page's images[].spec, see scripts/lib/mapcards.mjs).
+   File names describe the picture, which is a small hint for image search. */
+export const cityMapPath = (c) => '/img/cities/' + (c.slug.endsWith('-' + c.country.slug) ? c.slug : c.slug + '-' + c.country.slug) + '-map.svg';
+export const countryMapPath = (k) => '/img/countries/' + k.slug + '-map.svg';
+export const monthMapPath = (m) => '/img/where-to-go/' + MONTHS[m].toLowerCase() + '-map.svg';
+/** Header class for pages that show a map image (static site only: the single-file preview has no image files). */
+export const mediaHead = (ctx) => (ctx.mode === 'static' ? 'pagehead--media' : '');
+/** The map image beside a page's heading. It's above the fold, so it loads eagerly with high priority (good for LCP). */
+export function mapFigure(ctx, img) {
+  if (!img || ctx.mode !== 'static') return '';
+  return html`<figure class="mapcard"><img src="${img.src}" alt="${img.alt}" width="${img.w}" height="${img.h}" fetchpriority="high" decoding="async"><figcaption>${img.caption}</figcaption></figure>`;
+}
 
 export const scoreChip = (v, label = 'Score') => html`<span class="score score--${scoreClass(v)}" title="${label}: ${v ?? 'no data'} out of 100"><span class="sr">${label}: </span>${v ?? '–'}</span>`;
 
@@ -46,9 +62,10 @@ export function faqLd(items) {
   return { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: items.map((q) => ({ '@type': 'Question', name: q.q, acceptedAnswer: { '@type': 'Answer', text: q.a } })) };
 }
 
-export function pageHead({ eyebrow, title, lede, children, cls = '' }) {
+export function pageHead({ eyebrow, title, lede, children, cls = '', icon = null }) {
+  const eb = eyebrow ? html`<p class="eyebrow">${eyebrow}</p>` : '';
   return html`<header class="pagehead ${cls}">
-    ${eyebrow ? html`<p class="eyebrow">${eyebrow}</p>` : ''}
+    ${icon ? html`<div class="pagehead__top">${iconTile(icon[0], icon[1])}${eb}</div>` : eb}
     <h1>${title}</h1>
     ${lede ? html`<p class="lede">${lede}</p>` : ''}
     ${children || ''}
@@ -66,7 +83,7 @@ export function visaPill(v, showDays = true) {
 }
 
 export function toolGrid(ctx, exclude) {
-  return html`<ul class="toolgrid">${TOOLS.filter((t) => t.key !== exclude).map((t) => html`<li><a class="toolcard" href="${ctx.link(t.path)}"><span class="toolcard__name">${t.name}</span><span class="toolcard__desc">${t.desc}</span></a></li>`)}</ul>`;
+  return html`<ul class="toolgrid">${TOOLS.filter((t) => t.key !== exclude).map((t) => html`<li><a class="toolcard tone-${t.tone}" href="${ctx.link(t.path)}">${iconTile(t.icon)}<span class="toolcard__name">${t.name}</span><span class="toolcard__desc">${toolDesc(ctx, t)}</span></a></li>`)}</ul>`;
 }
 
 /* ---------- Climate chart: temperature band (avg low to avg high) with mean line, and monthly rain bars ---------- */
@@ -108,14 +125,14 @@ export function climateChart(city, { highlight = null } = {}) {
   </svg>
   <figcaption class="chart__legend"><span class="key key--band"></span>Average daily low to high <span class="key key--line"></span>Daily mean <span class="key key--bar"></span>Rainfall</figcaption>
   <div class="chart__tip" hidden></div>
-  <script type="application/json" class="chart__data">${raw(JSON.stringify({ t: c.t, hi: c.hi, lo: c.lo, rain: c.rain, rh: c.rh }))}</script>
+  <script type="application/json" class="chart__data">${raw(scriptJson({ t: c.t, hi: c.hi, lo: c.lo, rain: c.rain, rh: c.rh }))}</script>
 </figure>`;
 }
 
 export function climateTable(city) {
   const c = city.clim;
   return html`<div class="tablewrap"><table class="table table--compact">
-    <caption>Monthly climate averages for ${city.name} (2001 to 2025)</caption>
+    <caption>Monthly climate averages for ${city.name} (temperatures 2015 to 2024; rain and humidity 2001 to 2025)</caption>
     <thead><tr><th scope="col">Month</th><th scope="col" class="num">High</th><th scope="col" class="num">Low</th><th scope="col" class="num">Rain</th><th scope="col" class="num">Humidity</th><th scope="col">Conditions</th><th scope="col" class="num">Comfort</th></tr></thead>
     <tbody>${MONTHS.map((m, i) => html`<tr><th scope="row">${m}</th><td class="num" title="${fmtTemp(c.hi[i], 'F')}">${fmtTemp(c.hi[i])}</td><td class="num" title="${fmtTemp(c.lo[i], 'F')}">${fmtTemp(c.lo[i])}</td><td class="num">${fmtMm(c.rain[i])}</td><td class="num">${fmtPct(c.rh[i])}</td><td>${describe(c, i)}</td><td class="num">${scoreChip(comfort(c, i), 'Comfort')}</td></tr>`)}</tbody>
   </table></div>`;
@@ -131,7 +148,7 @@ export function dataTable({ caption, columns, rows, id, cls = '' }) {
 }
 
 export function cityLink(ctx, c, { country = true } = {}) {
-  return html`<a href="${ctx.link(cityPath(c))}">${cityLabel(c)}</a>${country ? html`<span class="muted">, ${c.country.name}</span>` : ''}`;
+  return html`<a href="${ctx.link(cityPath(c))}">${cityLabel(c)}</a>${country && inCountry(c) ? html`<span class="muted">${inCountry(c)}</span>` : ''}`;
 }
 
 export function cityCards(ctx, cities, sub) {

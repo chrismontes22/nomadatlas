@@ -1,7 +1,7 @@
 import { html, raw } from '../html.mjs';
 import { MONTHS, fmtHours, fmtClock, fmtOffset } from '../../shared/format.mjs';
 import { overlap, refDate, tzOffset, COMMON_ZONES } from '../../shared/tz.mjs';
-import { scoreChip, cityPath, cityLabel, dataTable } from '../components.mjs';
+import { scoreChip, cityPath, cityLabel, inCountry, dataTable } from '../components.mjs';
 import { zoneOptions } from './match.mjs';
 
 export const tzDefaults = (ctx) => ({ tz: 'America/New_York', ts: 9, te: 17, ms: 8, me: 20, need: 4, month: ctx.buildMonth, region: '' });
@@ -27,7 +27,7 @@ function strip(team, me, ov, tzCity, date) {
   const toLocal = (h) => ((h * 60 - oT + oC) % 1440 + 1440) % 1440;
   const segs = (a, b) => (b > a ? [[a, b]] : [[a, 1440], [0, b]]);
   let ts = toLocal(team.start), te = toLocal(team.end); if (team.end - team.start >= 24) te = ts;
-  const teamSegs = segs(ts, te === ts ? ts + 1440 : te).map(([a, b]) => [a, Math.min(b, 1440)]);
+  const teamSegs = te === ts ? [[0, 1440]] : segs(ts, te);
   const meSegs = segs(me.start * 60, me.end * 60);
   const x = (m) => (m / 1440) * 240;
   return html`<svg class="tzstrip" viewBox="0 0 240 18" aria-hidden="true">
@@ -49,11 +49,11 @@ export function tzResults(ctx, s) {
   const date = refDate(ctx.year, +s.month);
   const team = { tz: s.tz, start: +s.ts, end: +s.te }; const me = { start: +s.ms, end: +s.me };
   const rows = tzRows(ctx, s);
-  const need = +s.need * 60;
+  const need = Math.max(0.5, +s.need || 0) * 60; // same floor as the destination finder (src/shared/scores.mjs)
   const ok = rows.filter((r) => r.ov.minutes >= need).length;
   const label = COMMON_ZONES.find(([z]) => z === s.tz)?.[1] || s.tz;
   return html`<p class="results__summary"><b>${ok}</b> of ${rows.length} cities give you at least ${fmtHours(need)} with a ${String(s.ts).padStart(2, '0')}:00–${String(s.te).padStart(2, '0')}:00 team in ${label} (${fmtOffset(tzOffset(s.tz, date))} in ${MONTHS[+s.month]})</p>
   <p class="tzkey" aria-hidden="true"><span class="key key--team"></span>Team hours in local time <span class="key key--me"></span>Hours you're willing to work</p>
   ${dataTable({ caption: 'Working-hours overlap by city', id: 'tz-table', columns: [{ label: 'City' }, { label: 'Local time vs team', num: true }, { label: 'Overlap', num: true }, { label: 'Overlap in local time', num: true }, { label: 'Your day (00–24 local)', sortable: false }, { label: 'Score', num: true }],
-    rows: rows.slice(0, 80).map(({ c, ov }) => ({ cells: [html`<a href="${ctx.link(cityPath(c))}">${cityLabel(c)}</a><span class="muted">, ${c.country.name}</span>`, (ov.diff === 0 ? '±0h' : (ov.diff > 0 ? '+' : '−') + fmtHours(Math.abs(ov.diff))), html`<span class="ovl ovl--${ov.minutes >= need ? 'hi' : ov.minutes > 0 ? 'lo' : 'none'}">${fmtHours(ov.minutes)}</span>`, ov.minutes ? fmtClock(ov.localStart) + '–' + fmtClock(ov.localEnd) : '–', strip(team, me, ov, c.tz, date), scoreChip(c.score)], sort: [cityLabel(c), ov.diff, ov.minutes, ov.localStart ?? '', '', c.score ?? ''] })) })}`;
+    rows: rows.slice(0, 80).map(({ c, ov }) => ({ cells: [html`<a href="${ctx.link(cityPath(c))}">${cityLabel(c)}</a><span class="muted">${inCountry(c)}</span>`, (ov.diff === 0 ? '±0h' : (ov.diff > 0 ? '+' : '−') + fmtHours(Math.abs(ov.diff))), html`<span class="ovl ovl--${ov.minutes >= need ? 'hi' : ov.minutes > 0 ? 'lo' : 'none'}">${fmtHours(ov.minutes)}</span>`, ov.minutes ? ov.blocks.map(([a, b]) => fmtClock(a) + '–' + fmtClock(b)).join(', ') : '–', strip(team, me, ov, c.tz, date), scoreChip(c.score)], sort: [cityLabel(c), ov.diff, ov.minutes, ov.localStart ?? '', '', c.score ?? ''] })) })}`;
 }

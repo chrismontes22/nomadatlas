@@ -1,10 +1,10 @@
 import { html, raw } from '../html.mjs';
 import { fmtMoney, fmtNum, fmtSignedPct } from '../../shared/format.mjs';
-import { CATEGORIES, LIFESTYLES, CURRENCIES, priceIndex, translate, toCur } from '../../shared/cost.mjs';
+import { CATEGORIES, LIFESTYLES, CURRENCIES, priceIndex, translate, toCur, basketTotal } from '../../shared/cost.mjs';
 import { countryOptions } from './match.mjs';
 import { countryPath, dataTable } from '../components.mjs';
 
-const step = (cur) => (['JPY', 'KRW', 'IDR', 'HUF', 'ISK', 'INR', 'PHP', 'THB', 'CZK', 'MXN', 'ZAR', 'TRY'].includes(cur) ? 100 : 10);
+export const step = (cur) => (['JPY', 'KRW', 'IDR', 'HUF', 'ISK', 'INR', 'PHP', 'THB', 'CZK', 'MXN', 'ZAR', 'TRY'].includes(cur) ? 100 : 10);
 export function costAmounts(ctx, from, life, cur) {
   const home = ctx.db.byIso3.get(from); const basket = (LIFESTYLES[life] || LIFESTYLES.comfortable).basket;
   return Object.fromEntries(CATEGORIES.map((cat) => {
@@ -36,6 +36,7 @@ export function costResults(ctx, s) {
   const money = (v) => fmtMoney(v, cur, step(cur));
   if (!home?.pli) return html`<div class="empty"><p>Pick a home country with price data to start.</p></div>`;
   const spend = Object.fromEntries(CATEGORIES.map((c) => [c.key, +s[c.key] || 0]));
+  if (!(basketTotal(spend) > 0)) return html`<div class="empty"><p>Enter what you spend in a month to compare it with other countries.</p></div>`;
   const t = dest?.pli ? translate(spend, home, dest) : null;
   const all = db.countries.filter((c) => c.pli && c !== home).map((c) => ({ c, r: translate(spend, home, c) })).sort((a, b) => a.r.total - b.r.total);
   const head = t ? html`<div class="costhead">

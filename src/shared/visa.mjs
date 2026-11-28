@@ -57,6 +57,17 @@ export function createVisa(json) {
   return api;
 }
 
+/**
+ * Passports ranked by destinations they reach without a visa in advance (visa-free, on arrival or eTA), then by visa-free
+ * destinations alone. Passports with the same two counts share a rank.
+ */
+export function rankPassports(countries, visa) {
+  const list = countries.filter((c) => visa.has(c.iso3)).map((c) => ({ c, n: visa.counts([c.iso3]) }))
+    .sort((a, b) => b.n.easy - a.n.easy || b.n.free - a.n.free || a.c.name.localeCompare(b.c.name));
+  list.forEach((r, i) => { const p = list[i - 1]; r.rank = p && p.n.easy === r.n.easy && p.n.free === r.n.free ? p.rank : i + 1; });
+  return list;
+}
+
 export function stayLabel(v) {
   if (!v) return 'No data';
   if (v.s === 'free') return v.days ? v.days + ' days visa-free' : 'Visa-free';
@@ -64,6 +75,6 @@ export function stayLabel(v) {
 }
 export function visaEase(v) {
   if (!v) return null;
-  if (v.s === 'free' || v.s === 'home') return v.days == null || v.days >= 90 ? 100 : v.days >= 30 ? 88 : 75;
+  if (v.s === 'free' || v.s === 'home') return v.days == null || v.days >= 90 ? 100 : v.days >= 30 ? 92 : 88; // never below visa on arrival (85), so the best-ranked option also scores highest
   return STATUS[v.s].ease;
 }

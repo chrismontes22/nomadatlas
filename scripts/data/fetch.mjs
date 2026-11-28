@@ -1,5 +1,5 @@
 // Downloads every raw source into data/raw (cached). Run: npm run data:fetch  (add --force to refresh)
-import { cached, download, writeJSON, exists, unzip, pool, fold, sleep } from '../lib/util.mjs';
+import { cached, download, writeJSON, exists, unzip, pool, fold, sleep, isJSON, isZip, hasText } from '../lib/util.mjs';
 import { CITY_LIST } from './cities.list.mjs';
 import { WDI, WGI, ICP } from './sources.mjs';
 
@@ -9,10 +9,8 @@ const log = (...a) => console.log('[fetch]', ...a);
 
 
 async function wbAll(file, url) {
-  const buf = await cached(file, url, { force: FORCE });
-  const j = JSON.parse(buf.toString('utf8'));
-  if (!Array.isArray(j) || !j[1]) throw new Error('Unexpected WB response for ' + url + ': ' + buf.toString('utf8').slice(0, 200));
-  return j;
+  const buf = await cached(file, url, { force: FORCE, validate: isJSON((j) => Array.isArray(j) && j[1]) });
+  return JSON.parse(buf.toString('utf8'));
 }
 
 async function main() {
@@ -27,38 +25,37 @@ async function main() {
     log('WGI', id);
   });
   await pool(Object.keys(ICP), 4, async (s) => {
-    const buf = await cached(`${RAW}/wb/icp-${s}.json`, `https://api.worldbank.org/v2/sources/90/country/all/series/${s}/classification/PX.WL/time/YR2021/data?format=json&per_page=2000`, { force: FORCE });
-    JSON.parse(buf.toString('utf8'));
+    const buf = await cached(`${RAW}/wb/icp-${s}.json`, `https://api.worldbank.org/v2/sources/90/country/all/series/${s}/classification/PX.WL/time/YR2021/data?format=json&per_page=2000`, { force: FORCE, validate: isJSON() });
     log('ICP 2021 series', s);
   });
 
   log('Passport index (imorte/passport-index-data)');
-  await cached(`${RAW}/passport/passport-index-tidy-iso3.csv`, 'https://raw.githubusercontent.com/imorte/passport-index-data/main/passport-index-tidy-iso3.csv', { force: FORCE });
+  await cached(`${RAW}/passport/passport-index-tidy-iso3.csv`, 'https://raw.githubusercontent.com/imorte/passport-index-data/main/passport-index-tidy-iso3.csv', { force: FORCE, validate: hasText('Passport,Destination,Requirement') });
   await cached(`${RAW}/passport/README.md`, 'https://raw.githubusercontent.com/imorte/passport-index-data/main/README.md', { force: FORCE });
 
   log('GeoNames countryInfo + cities1000');
-  const countryInfo = (await cached(`${RAW}/geonames/countryInfo.txt`, 'https://download.geonames.org/export/dump/countryInfo.txt', { force: FORCE })).toString('utf8');
-  const zip = await cached(`${RAW}/geonames/cities1000.zip`, 'https://download.geonames.org/export/dump/cities1000.zip', { force: FORCE });
+  const countryInfo = (await cached(`${RAW}/geonames/countryInfo.txt`, 'https://download.geonames.org/export/dump/countryInfo.txt', { force: FORCE, validate: hasText('#ISO\tISO3') })).toString('utf8');
+  const zip = await cached(`${RAW}/geonames/cities1000.zip`, 'https://download.geonames.org/export/dump/cities1000.zip', { force: FORCE, validate: isZip });
 
   log('Natural Earth 50m admin-0');
-  await cached(`${RAW}/naturalearth/ne_50m_admin_0_countries.geojson`, 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson', { force: FORCE });
+  await cached(`${RAW}/naturalearth/ne_50m_admin_0_countries.geojson`, 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson', { force: FORCE, validate: isJSON((j) => Array.isArray(j.features)) });
 
   log('ECB reference rates');
-  await cached(`${RAW}/ecb/eurofxref-daily.xml`, 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml', { force: FORCE });
+  await cached(`${RAW}/ecb/eurofxref-daily.xml`, 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml', { force: FORCE, validate: hasText('<Cube') });
 
   log('DESNZ GHG conversion factors 2026 (flat file)');
-  await cached(`${RAW}/desnz/ghg-conversion-factors-2026-flat.xlsx`, 'https://assets.publishing.service.gov.uk/media/6a6c9748862aaf18d9c62ac9/ghg-conversion-factors-2026-flat-format-revised.xlsx', { force: FORCE });
+  await cached(`${RAW}/desnz/ghg-conversion-factors-2026-flat.xlsx`, 'https://assets.publishing.service.gov.uk/media/6a6c9748862aaf18d9c62ac9/ghg-conversion-factors-2026-flat-format-revised.xlsx', { force: FORCE, validate: isZip });
 
   const sparql = {
-    plugs: 'SELECT ?iso ?plugLabel WHERE { ?c wdt:P298 ?iso; wdt:P2853 ?plug. FILTER NOT EXISTS { ?c wdt:P576 ?end } SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }',
-    voltage: 'SELECT ?iso ?v WHERE { ?c wdt:P298 ?iso; wdt:P2884 ?v. FILTER NOT EXISTS { ?c wdt:P576 ?end } }',
+    plugs: 'SELECT ?iso ?plugLabel WHERE { ?c wdt:P298 ?iso; p:P2853 ?st. ?st ps:P2853 ?plug; wikibase:rank ?rk. FILTER(?rk != wikibase:DeprecatedRank) FILTER NOT EXISTS { ?st pq:P582 ?stEnd } FILTER NOT EXISTS { ?c wdt:P576 ?end } SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }',
+    voltage: 'SELECT ?iso ?v WHERE { ?c wdt:P298 ?iso; p:P2884 ?st. ?st ps:P2884 ?v; wikibase:rank ?rk. FILTER(?rk != wikibase:DeprecatedRank) FILTER NOT EXISTS { ?st pq:P582 ?stEnd } FILTER NOT EXISTS { ?c wdt:P576 ?end } }',
     frequency: 'SELECT ?iso ?f WHERE { ?c wdt:P298 ?iso; wdt:P2144 ?f. FILTER NOT EXISTS { ?c wdt:P576 ?end } }',
-    driving: 'SELECT ?iso ?sideLabel WHERE { ?c wdt:P298 ?iso; wdt:P1622 ?side. FILTER NOT EXISTS { ?c wdt:P576 ?end } SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }',
+    driving: 'SELECT ?iso ?sideLabel WHERE { ?c wdt:P298 ?iso; p:P1622 ?st. ?st ps:P1622 ?side; wikibase:rank ?rk. FILTER(?rk != wikibase:DeprecatedRank) FILTER NOT EXISTS { ?st pq:P582 ?stEnd } FILTER NOT EXISTS { ?c wdt:P576 ?end } SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }',
     demonym: 'SELECT ?iso ?d WHERE { ?c wdt:P298 ?iso; wdt:P1549 ?d. FILTER(LANG(?d) = "en") FILTER NOT EXISTS { ?c wdt:P576 ?end } }',
   };
   for (const [k, q] of Object.entries(sparql)) {
     log('Wikidata', k);
-    await cached(`${RAW}/wikidata/${k}.json`, 'https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(q), { force: FORCE, headers: { Accept: 'application/sparql-results+json' } });
+    await cached(`${RAW}/wikidata/${k}.json`, 'https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(q), { force: FORCE, validate: isJSON((j) => Array.isArray(j.results?.bindings)), headers: { Accept: 'application/sparql-results+json' } });
     await sleep(400);
   }
 
@@ -81,7 +78,7 @@ async function main() {
     const rank = (r) => (r.fcode === 'PPLC' ? 3 : r.fcode.startsWith('PPLA') ? 2 : 1) * 1e9 + r.pop;
     cands.sort((a, b) => rank(b) - rank(a));
     const r = cands[0];
-    resolved.push({ name, cc, alias: alias || null, geonameid: r.id, gnName: r.name, fcode: r.fcode, lat: r.lat, lng: r.lng, population: r.pop, elevation: r.elev ?? r.dem, tz: r.tz, admin1: r.admin1 });
+    resolved.push({ name, cc, alias: alias || null, geonameid: r.id, gnName: r.name, fcode: r.fcode, lat: r.lat, lng: r.lng, population: r.pop, elevation: r.elev ?? (r.dem > -9000 ? r.dem : null), tz: r.tz, admin1: r.admin1 });
   }
   if (missing.length) log('WARNING unresolved cities:', missing.join('; '));
   await writeJSON(`${RAW}/cities-resolved.json`, resolved, true);
@@ -122,7 +119,8 @@ async function main() {
   });
   log('NASA POWER daily done');
 
-  const countries = countryInfo.split('\n').filter((l) => l && !l.startsWith('#')).map((l) => l.split('\t')).map((f) => ({ iso2: f[0], continent: f[8] }));
+  const countries = countryInfo.split('\n').filter((l) => l && !l.startsWith('#')).map((l) => l.split('\t')).map((f) => ({ iso2: f[0], continent: f[8] }))
+    .filter(({ iso2, continent }) => /^[A-Z]{2}$/.test(iso2) && /^[A-Z]{2}$/.test(continent)); // both end up in a URL and a file name
   const mlabYear = 2024;
   await pool(countries, 8, async ({ iso2, continent }) => {
     const file = `${RAW}/mlab/${iso2}.json`;

@@ -31,7 +31,8 @@ async function start() {
     boot(document);
   };
   const route = () => {
-    const h = decodeURIComponent(location.hash.slice(1));
+    let h = location.hash.slice(1);
+    try { h = decodeURIComponent(h); } catch { /* malformed escape: route on the raw hash */ }
     // A plain in-page anchor (an element id that is not a page) scrolls instead of routing.
     const el = h && h !== 'home' ? document.getElementById(h) : null;
     if (el && !renderPath(ctx, toPath(h))) { el.scrollIntoView(); return; }

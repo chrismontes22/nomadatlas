@@ -3,6 +3,7 @@
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import * as esbuild from 'esbuild';
+import { landBits } from './lib/land.mjs';
 
 const OUT = 'preview';
 await rm(OUT, { recursive: true, force: true });
@@ -15,7 +16,7 @@ const version = createHash('sha1').update(core + visa + map).digest('hex').slice
 await writeFile(OUT + '/data/core.json', core); await writeFile(OUT + '/data/visa.json', visa); await writeFile(OUT + '/data/map.json', map);
 
 const css = (await esbuild.build({ entryPoints: ['src/styles/site.css'], bundle: true, minify: true, write: false, logLevel: 'warning' })).outputFiles[0].text;
-const js = (await esbuild.build({ entryPoints: ['src/client/spa.mjs'], bundle: true, minify: true, format: 'iife', target: 'es2020', write: false, define: { __DATA_VERSION__: JSON.stringify(version) }, logLevel: 'warning' })).outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
+const js = (await esbuild.build({ entryPoints: ['src/client/spa.mjs'], bundle: true, minify: true, format: 'iife', target: 'es2020', write: false, define: { __DATA_VERSION__: JSON.stringify(version), __LAND__: JSON.stringify(landBits(JSON.parse(map))) }, logLevel: 'warning' })).outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
 
 const page = `<title>NomadAtlas</title>
 <meta name="claude:viewport-fit-sides" content="cover">

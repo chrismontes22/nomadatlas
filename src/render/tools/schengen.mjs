@@ -55,15 +55,18 @@ function chart(a) {
 
 export function schengenResults(ctx, s) {
   const trips = s.trips.filter((t) => t.entry && t.exit);
+  // Stays the rule can't count (left before entering, or over ten years): say so rather than quietly leaving them out.
+  const bad = trips.filter((t) => { const a = toDay(t.entry), b = toDay(t.exit); return Number.isFinite(a) && Number.isFinite(b) && (b < a || b - a > 3660); }).length;
   const a = analyze(trips, s.check);
   const plan = s.plan ? maxStay(trips, s.plan) : null;
   const state = a.used > 90 ? 'bad' : a.remaining <= 10 ? 'warn' : 'good';
   return html`<div class="schsum">
       <div class="schsum__item schsum__item--${state}"><span class="schsum__n">${a.used}</span><span class="schsum__l">days used in the 180 days up to ${nice(s.check)}</span></div>
-      <div class="schsum__item"><span class="schsum__n">${a.remaining}</span><span class="schsum__l">days you could still stay on that date</span></div>
+      <div class="schsum__item"><span class="schsum__n">${a.remaining}</span><span class="schsum__l">of your 90 days unused in that window</span></div>
       ${plan ? html`<div class="schsum__item"><span class="schsum__n">${plan.days}</span><span class="schsum__l">days allowed if you enter on ${nice(s.plan)}${plan.lastDay ? html`, leaving by <b>${nice(plan.lastDay)}</b>` : ''}</span></div>` : ''}
     </div>
-    ${a.firstOverstay ? html`<p class="alert alert--bad" role="alert"><b>Overstay:</b> these stays exceed 90 days in a 180-day window from ${nice(a.firstOverstay)} (${a.overstays.length} day${a.overstays.length === 1 ? '' : 's'} over the limit).</p>` : html`<p class="alert alert--good">These stays respect the 90/180 rule.</p>`}
-    ${a.resetDate ? html`<p class="hint">Your window is completely clear again from <b>${nice(a.resetDate)}</b>, when all ${fmtNum(a.totalDays)} counted days have dropped out.</p>` : ''}
+    ${bad ? html`<p class="alert alert--warn" role="alert"><b>Check your dates:</b> ${bad === 1 ? 'one stay is' : bad + ' stays are'} not counted because the date you left is before the date you entered (or the stay is over ten years long).</p>` : ''}
+    ${a.firstOverstay ? html`<p class="alert alert--bad" role="alert"><b>Overstay:</b> these stays exceed 90 days in a 180-day window from ${nice(a.firstOverstay)} (${a.overstays.length} day${a.overstays.length === 1 ? '' : 's'} over the limit).</p>` : html`<p class="alert alert--good">${bad ? 'The stays it can count respect' : 'These stays respect'} the 90/180 rule.</p>`}
+    ${a.resetDate ? (a.clearBy ? html`<p class="hint">All ${fmtNum(a.totalDays)} days of these stays had dropped out of the window by <b>${nice(a.resetDate)}</b>.</p>` : html`<p class="hint">Your window is completely clear again from <b>${nice(a.resetDate)}</b>, 180 days after the last day of these stays, once all ${fmtNum(a.totalDays)} days have dropped out.</p>`) : ''}
     ${chart(a)}`;
 }

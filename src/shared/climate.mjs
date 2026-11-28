@@ -4,11 +4,12 @@ export const DEFAULT_CLIMATE = { tMin: 16, tMax: 25, maxRain: 150 };
 /** 0-100 comfort for a month, from mean temperature (vs the preferred band), rainfall and muggy heat. */
 export function comfort(clim, m, prefs = DEFAULT_CLIMATE) {
   const t = clim.t[m]; if (t == null) return null;
+  if (prefs.tMin > prefs.tMax) prefs = { ...prefs, tMin: prefs.tMax, tMax: prefs.tMin };
   const rain = clim.rain[m] ?? 0, rh = clim.rh[m] ?? 60;
   const d = t < prefs.tMin ? prefs.tMin - t : t > prefs.tMax ? t - prefs.tMax : 0;
   let s = 100 - d * (t < prefs.tMin ? 8 : 11);
   const maxRain = prefs.maxRain ?? 150;
-  s -= clamp((rain - maxRain * 0.35) / (maxRain * 1.65), 0, 1) * 40;
+  s -= maxRain > 0 ? clamp((rain - maxRain * 0.35) / (maxRain * 1.65), 0, 1) * 40 : rain > 0 ? 40 : 0;
   if (t > 22) s -= clamp((rh - 65) / 25, 0, 1) * clamp((t - 22) / 6, 0, 1) * 14;
   return Math.round(clamp(s));
 }

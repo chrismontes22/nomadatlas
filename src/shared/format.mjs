@@ -26,19 +26,20 @@ export function fmtTemp(c, unit = 'C') {
   if (c == null || !Number.isFinite(c)) return '–';
   return unit === 'F' ? Math.round(cToF(c)) + '°F' : Math.round(c) + '°C';
 }
-export const fmtMm = (mm) => (mm == null ? '–' : fmtNum(mm) + ' mm');
+export const fmtMm = (mm) => (mm == null || !Number.isFinite(+mm) ? '–' : fmtNum(mm) + ' mm');
 export function fmtCoord(lat, lng) {
   return Math.abs(lat).toFixed(2) + '°' + (lat >= 0 ? 'N' : 'S') + ' ' + Math.abs(lng).toFixed(2) + '°' + (lng >= 0 ? 'E' : 'W');
 }
 export function fmtOffset(min) {
+  if (min == null || !Number.isFinite(min)) return '–';
   const s = min >= 0 ? '+' : '−'; const a = Math.abs(min);
   const h = Math.floor(a / 60), m = a % 60;
   return 'UTC' + s + h + (m ? ':' + String(m).padStart(2, '0') : '');
 }
 export function fmtHours(min) {
-  if (min == null) return '–';
-  const h = Math.floor(min / 60), m = Math.round(min % 60);
-  return m ? h + 'h ' + m + 'm' : h + 'h';
+  if (min == null || !Number.isFinite(min)) return '–';
+  const t = Math.round(Math.abs(min)), h = Math.floor(t / 60), m = t % 60;
+  return (min < 0 && t ? '−' : '') + (m ? h + 'h ' + m + 'm' : h + 'h');
 }
 export const fmtClock = (minOfDay) => {
   const m = ((Math.round(minOfDay) % 1440) + 1440) % 1440;
@@ -56,7 +57,8 @@ export function listJoin(arr, word = 'and') {
   return a.slice(0, -1).join(', ') + ' ' + word + ' ' + a[a.length - 1];
 }
 export const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
-export function monthRanges(months) {
+/** "a" or "an" before a country name used as an adjective ("an India passport", "a United States passport"). */
+export const an = (name) => (/^[AEIO]/.test(name) || /^U[zr]/.test(name) ? 'an ' : 'a ') + name;export function monthRanges(months) {
   // [0,1,2,6,7] -> "January–March, July–August"
   const set = [...new Set(months)].sort((a, b) => a - b);
   if (!set.length) return '';

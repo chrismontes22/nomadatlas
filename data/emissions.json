@@ -1,7 +1,7 @@
 {
   "year": 2026,
   "unit": "kg CO2e per passenger-km",
-  "distanceUplift": 0.08,
+  "distanceUplift": 0,
   "shortHaulMaxKm": 3700,
   "domestic": {
     "avg": {

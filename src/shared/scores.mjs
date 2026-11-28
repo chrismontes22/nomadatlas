@@ -41,12 +41,12 @@ export const FACTORS = [
   { key: 'health', label: 'Healthcare', short: 'Health' },
   { key: 'air', label: 'Air quality', short: 'Air' },
 ];
-export const DEFAULT_WEIGHTS = { cost: 3, climate: 3, internet: 2, safety: 2, visa: 2, timezone: 2, health: 1, air: 1 };
+export const DEFAULT_WEIGHTS = { cost: 3, climate: 2, internet: 2, safety: 2, visa: 2, timezone: 2, health: 1, air: 1 };
 
 /** 100 when the estimate uses 65% of the budget or less, 0 at 130% of the budget. Without a budget: log scale $1,100 to $6,000. */
 export function affordability(costUsd, budgetUsd) {
   if (costUsd == null) return null;
-  if (!budgetUsd) return Math.round(100 - logScale(costUsd, 1100, 6000));
+  if (!(budgetUsd > 0)) return Math.round(100 - logScale(costUsd, 1100, 6000));
   return Math.round(clamp(((1.3 - costUsd / budgetUsd) / (1.3 - 0.65)) * 100));
 }
 
@@ -79,9 +79,9 @@ export function rankCities(db, q, filter) {
     if (filter && !filter(r)) continue;
     out.push(r);
   }
-  return out.sort((a, b) => b.total - a.total || (a.costUsd ?? 1e9) - (b.costUsd ?? 1e9));
+  return out.sort((a, b) => b.total - a.total || (a.costUsd ?? 1e9) - (b.costUsd ?? 1e9) || a.city.name.localeCompare(b.city.name));
 }
 
 // Passport-independent score used on city pages and indexes: default weights, year-round weather, comfortable lifestyle, $3,000 budget.
-export const STATIC_QUERY = { month: null, climate: DEFAULT_CLIMATE, budgetUsd: 3000, basket: LIFESTYLES.comfortable.basket, weights: { cost: 3, climate: 2, internet: 2, safety: 2, health: 1, air: 1 } };
+export const STATIC_QUERY = { month: null, climate: DEFAULT_CLIMATE, budgetUsd: 3000, basket: LIFESTYLES.comfortable.basket, weights: { ...DEFAULT_WEIGHTS, visa: 0, timezone: 0 } };
 export const scoreClass = (v) => (v == null ? 'na' : v >= 75 ? 'hi' : v >= 55 ? 'mid' : v >= 35 ? 'lo' : 'vlo');

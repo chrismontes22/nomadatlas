@@ -2,7 +2,7 @@ import { tzDefaults, tzResults } from '../../render/tools/timezone.mjs';
 import { weatherDefaults, weatherResults } from '../../render/tools/weather.mjs';
 import { flightDefaults, flightResults } from '../../render/tools/flight.mjs';
 import { scoreClass } from '../../shared/scores.mjs';
-import { cityPath, cityLabel } from '../../render/components.mjs';
+import { cityPath, cityLabel, cityFull } from '../../render/components.mjs';
 import { simpleTool, navigate } from './helpers.mjs';
 import { readForm, debounce } from '../ctx.mjs';
 import { drawMap } from '../worldmap.mjs';
@@ -29,7 +29,7 @@ export function cityindex(el, ctx) {
     for (const d of api.svg.querySelectorAll('circle.dot')) { const c = ctx.db.cityBySlug.get(d.dataset.city); const ok = (!q || (cityLabel(c) + ' ' + c.country.name).toLowerCase().includes(q)) && (!s.region || c.country.region === s.region); d.classList.toggle('is-dim', !ok); }
   });
   drawMap(mapEl, {
-    tooltip: (t) => { if (t.dataset.city) { const c = ctx.db.cityBySlug.get(t.dataset.city); return cityLabel(c) + ', ' + c.country.name + ' · score ' + c.score; } return ctx.db.byIso3.get(t.dataset.iso)?.name || null; },
+    tooltip: (t) => { if (t.dataset.city) { const c = ctx.db.cityBySlug.get(t.dataset.city); return cityFull(c) + ' · score ' + c.score; } return ctx.db.byIso3.get(t.dataset.iso)?.name || null; },
     onClick: (t) => { if (t.dataset.city) navigate(ctx, cityPath(ctx.db.cityBySlug.get(t.dataset.city))); },
   }).then((a) => { api = a; a.dots(ctx.db.citiesRanked.slice().reverse().map((c) => ({ id: c.slug, lat: c.lat, lng: c.lng, cls: 'dot--' + scoreClass(c.score) }))); run(); }).catch(() => { mapEl.hidden = true; });
 }

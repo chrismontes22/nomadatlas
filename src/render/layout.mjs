@@ -1,7 +1,14 @@
 import { html, raw, jsonLd, esc } from './html.mjs';
-import { TOOLS } from './nav.mjs';
+import { TOOLS, toolDesc } from './nav.mjs';
 import { MONTHS } from '../shared/format.mjs';
 import { cityPath, cityLabel, monthPath } from './components.mjs';
+import { iconTile } from './icons.mjs';
+
+/**
+ * Runs in <head> before first paint: marks that JavaScript is on and applies the saved theme, so the page never flashes the
+ * wrong colours. scripts/build.mjs allows exactly this text in the Content-Security-Policy by its hash.
+ */
+export const THEME_SCRIPT = "(function(){var d=document.documentElement;d.classList.add('js');try{var t=localStorage.getItem('na-theme');if(t==='dark'||t==='light')d.setAttribute('data-theme',t)}catch(e){}})();";
 
 export const logo = raw('<svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="12.5" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="16" cy="16" rx="5.2" ry="12.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3.8 12h24.4M3.8 20h24.4" stroke="currentColor" stroke-width="1.4"/><circle cx="24.5" cy="7.5" r="4.2" class="logo__pin"/></svg>');
 
@@ -15,10 +22,10 @@ export function siteHeader(ctx, page) {
     <nav class="nav" aria-label="Main">
       <details class="dropdown">
         <summary><span class="lg">Tools</span><span class="sm">Menu</span></summary>
-        <ul class="dropdown__panel">${TOOLS.map((t) => html`<li><a href="${ctx.link(t.path)}"${is(t.path) && t.path !== '/' ? raw(' aria-current="page"') : ''}><b>${t.short}</b><span>${t.desc}</span></a></li>`)}
-          <li class="dropdown__extra"><a href="${ctx.link('/cities/')}"><b>All cities</b><span>Every city, ranked and on a map</span></a></li>
-          <li class="dropdown__extra"><a href="${ctx.link('/countries/')}"><b>All countries</b><span>Cost, internet, safety and visas compared</span></a></li>
-          <li class="dropdown__extra"><a href="${ctx.link('/methodology/')}"><b>Methodology</b><span>How every score is calculated</span></a></li></ul>
+        <ul class="dropdown__panel">${TOOLS.map((t) => html`<li><a href="${ctx.link(t.path)}"${is(t.path) && t.path !== '/' ? raw(' aria-current="page"') : ''}>${iconTile(t.icon, t.tone)}<b>${t.short}</b><span>${toolDesc(ctx, t)}</span></a></li>`)}
+          <li class="dropdown__extra"><a href="${ctx.link('/cities/')}">${iconTile('pin', 'rose')}<b>All cities</b><span>Every city, ranked and on a map</span></a></li>
+          <li class="dropdown__extra"><a href="${ctx.link('/countries/')}">${iconTile('globe', 'cyan')}<b>All countries</b><span>Cost, internet, safety and visas compared</span></a></li>
+          <li class="dropdown__extra"><a href="${ctx.link('/methodology/')}">${iconTile('book', 'indigo')}<b>Methodology</b><span>How every score is calculated</span></a></li></ul>
       </details>
       <a href="${ctx.link('/cities/')}"${is('/cities/') ? raw(' aria-current="page"') : ''}>Cities</a>
       <a href="${ctx.link('/countries/')}"${is('/countries/') ? raw(' aria-current="page"') : ''}>Countries</a>
@@ -38,7 +45,7 @@ export function siteFooter(ctx) {
       <p>Open-data calculators for choosing where to live and work remotely. Every number links back to a public dataset you can check.</p>
     </div>
     <nav aria-label="Tools"><h2>Tools</h2><ul>${TOOLS.map((t) => html`<li><a href="${ctx.link(t.path)}">${t.short}</a></li>`)}</ul></nav>
-    <nav aria-label="Top cities"><h2>Top-rated cities</h2><ul>${top.map((c) => html`<li><a href="${ctx.link(cityPath(c))}">${cityLabel(c)}</a></li>`)}<li><a href="${ctx.link('/cities/')}">All 184 cities</a></li></ul></nav>
+    <nav aria-label="Top cities"><h2>Top-rated cities</h2><ul>${top.map((c) => html`<li><a href="${ctx.link(cityPath(c))}">${cityLabel(c)}</a></li>`)}<li><a href="${ctx.link('/cities/')}">All ${ctx.db.cities.length} cities</a></li></ul></nav>
     <nav aria-label="Where to go by month"><h2>Where to go in…</h2><ul class="footer__months">${MONTHS.map((m, i) => html`<li><a href="${ctx.link(monthPath(i))}">${m}</a></li>`)}</ul></nav>
     <nav aria-label="About"><h2>About</h2><ul>
       <li><a href="${ctx.link('/methodology/')}">Methodology</a></li>
@@ -64,15 +71,16 @@ export function documentHtml(ctx, page) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>${raw(THEME_SCRIPT)}</script>
 <title>${title}</title>
 <meta name="description" content="${page.description}">
-<link rel="canonical" href="${url}">
+${page.noindex ? '' : html`<link rel="canonical" href="${url}">`}
 <meta name="robots" content="${page.noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1'}">
 <meta property="og:type" content="${page.ogType || 'website'}">
 <meta property="og:site_name" content="${ctx.site.name}">
 <meta property="og:title" content="${page.ogTitle || title}">
 <meta property="og:description" content="${page.description}">
-<meta property="og:url" content="${url}">
+${page.noindex ? '' : html`<meta property="og:url" content="${url}">`}
 <meta property="og:image" content="${og}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -82,8 +90,8 @@ export function documentHtml(ctx, page) {
 <meta name="twitter:title" content="${page.ogTitle || title}">
 <meta name="twitter:description" content="${page.description}">
 <meta name="twitter:image" content="${og}">
-<meta name="theme-color" content="#f2f4f1" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0c171f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a1220" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -92,7 +100,6 @@ export function documentHtml(ctx, page) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="${ctx.assets.css}">
-<script>${raw("(function(){var d=document.documentElement;d.classList.add('js');try{var t=localStorage.getItem('na-theme');if(t==='dark'||t==='light')d.setAttribute('data-theme',t)}catch(e){}})();")}</script>
 <script type="module" src="${ctx.assets.js}"></script>
 ${ld.map((o) => jsonLd(o))}
 </head>

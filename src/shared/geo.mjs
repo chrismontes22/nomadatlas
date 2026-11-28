@@ -6,17 +6,20 @@ export function haversine(lat1, lng1, lat2, lng2) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
-// Flight emissions with UK DESNZ conversion factors (kg CO2e per passenger-km), applying the recommended 8% distance uplift.
+// Flight emissions with UK DESNZ conversion factors (kg CO2e per passenger-km). DESNZ already builds the recommended 8%
+// great-circle distance uplift into these factors (2025 methodology paper, para 8.39), so they apply to plain great-circle km.
+// Flights within one country use DESNZ's domestic factor (an average-passenger figure, so the cabin class does not change it).
 export const CABINS = { economy: 'Economy', premium: 'Premium economy', business: 'Business', first: 'First' };
-export function flightEstimate(distKm, em, { cabin = 'economy', rf = true, trips = 1 } = {}) {
+export function flightEstimate(distKm, em, { cabin = 'economy', rf = true, trips = 1, domestic = false } = {}) {
   if (!em || !Number.isFinite(distKm)) return null;
   const longHaul = distKm >= em.shortHaulMaxKm;
+  const useDomestic = domestic && !longHaul && em.domestic?.avg?.rf != null;
   const band = longHaul ? em.longHaul : em.shortHaul;
-  const cls = band[cabin] || (cabin === 'first' ? band.business : band.economy);
+  const cls = useDomestic ? em.domestic.avg : band[cabin] || (cabin === 'first' ? band.business : band.economy);
   const factor = rf ? cls.rf : cls.noRf;
-  const billed = distKm * (1 + em.distanceUplift);
+  const billed = distKm * (1 + (em.distanceUplift || 0));
   return {
-    distKm, billedKm: billed, longHaul, factor,
+    distKm, billedKm: billed, longHaul, domestic: useDomestic, factor,
     kg: billed * factor * trips,
     hours: distKm / 820 + 0.5,
   };

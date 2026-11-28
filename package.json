@@ -8,6 +8,7 @@
     "data:fetch": "node scripts/data/fetch.mjs",
     "data:build": "node scripts/data/process.mjs",
     "data": "npm run data:fetch && npm run data:build",
+    "data:refresh": "node scripts/data/fetch.mjs --force && node scripts/data/process.mjs",
     "build": "node scripts/build.mjs",
     "dev": "node scripts/build.mjs && node scripts/serve.mjs",
     "serve": "node scripts/serve.mjs",

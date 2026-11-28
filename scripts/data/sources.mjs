@@ -43,7 +43,7 @@ export const SOURCES = [
     attribution: 'Contains data from GeoNames.org (CC BY 4.0).',
   },
   {
-    id: 'nasa', name: 'NASA POWER climatology (MERRA-2, 2001 to 2025)', publisher: 'NASA Langley Research Center', license: 'Public, free and open (NASA Earth science data policy)', licenseUrl: 'https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance',
+    id: 'nasa', name: 'NASA POWER (MERRA-2 daily data and climatology)', publisher: 'NASA Langley Research Center', license: 'Public, free and open (NASA Earth science data policy)', licenseUrl: 'https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance',
     url: 'https://power.larc.nasa.gov/',
     use: 'Monthly average, maximum and minimum temperature, precipitation, relative humidity, cloud cover and solar radiation for every city.',
     attribution: 'These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.',
